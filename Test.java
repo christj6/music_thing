@@ -35,7 +35,6 @@ public class Test implements JMC
 
         Phrase phrase = part.getPhrase(0);
         // after using Tools -> Quantize Timing, the file.mid worked perfectly for the first 12 measures, but then it 'ran out of' barlines. However, it also corrected the tempo, and midi playback was unaffected by the missing barlines.
-        // the part I was initially not understanding was that the 2 staves share beats, 
 
         // somewhere here, mess around with file?
         
