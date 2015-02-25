@@ -12,12 +12,18 @@
 // to import file (this example called "file.mid"):
 // java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid
 
+// I always forget this part, so I put it here
+// git add .
+// git commit -m "some message"
+// git push origin master
+
 import jm.JMC;
 import jm.music.data.*;
+import jm.music.tools.*;
 import jm.midi.*;
 import jm.util.*;
  
-public class Test implements JMC
+public class Test implements JMC 
 {
     public static void main(String[] args)
     {
@@ -31,14 +37,21 @@ public class Test implements JMC
 
         Read.midi(score, args[0]);
 
-        Part part = score.getPart(0);
+        //Part part = score.getPart(0);
 
-        Phrase phrase = part.getPhrase(0);
-        // after using Tools -> Quantize Timing, the file.mid worked perfectly for the first 12 measures, but then it 'ran out of' barlines. However, it also corrected the tempo, and midi playback was unaffected by the missing barlines.
+        //Phrase phrase = part.getPhrase(0);
+
+        Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
+        // 0.25 corresponds with quarter notes
+
+        Mod.transpose(score, 4); // moves notes up by 4 semitones -- http://explodingart.com/jmusic/jmtutorial/Methods.html
 
         // somewhere here, mess around with file?
         
         View.notate(score); // make the sheet music appear on the screen in cpn
+        // MuseScore's way better though, just import midi files with that
+
+        // attempted importing a midi file with wildly varing dynamics (file_w_dynamics.mid), to see if cpn or MuseScore would pick up on it, but it did not
                 
         //Play.midi(score, false);
     }
