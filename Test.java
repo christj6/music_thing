@@ -61,34 +61,42 @@ public class Test implements JMC
 
         
         System.out.println("pitch array: ");
-        Part part;
-        Phrase phrase;
+        Part part = score.getPart(0);
+        Phrase phrase = part.getPhrase(0);
         int i, j, k = 0;
 
-        for (i = 0; i < score.getSize(); i++)
+
+        for (k = 0; k < part.getSize(); k++)
         {
-            System.out.println("i: " + i);
+            System.out.println("Chord #" + (k+1));
 
-            part = score.getPart(i);
-
-            for (j = 0; j < part.getSize(); j++)
+            for (i = 0; i < score.getSize(); i++)
             {
-                System.out.println("j: " + j);
+                //System.out.println("i: " + i);
 
-                phrase = part.getPhrase(j);
+                part = score.getPart(i);
 
-                int[] pitches = phrase.getPitchArray();
-
-                /*
-                for (int k = 0; k < phrase.getSize(); k++)
+                for (j = 0; j < part.getSize(); j++)
                 {
-                    System.out.println("k: " + k);
+                    //System.out.println("j: " + j);
 
-                    System.out.println("pitch: " + pitches[k]);
+                    phrase = part.getPhrase(j);
+
+                    int[] pitches = phrase.getPitchArray();
+
+                    /*
+                    for (int k = 0; k < phrase.getSize(); k++)
+                    {
+                        System.out.println("k: " + k);
+
+                        System.out.println("pitch: " + pitches[k]);
+                    }
+                    */
+                    if (k < pitches.length)
+                    {
+                        System.out.println("pitch: " + pitches[k]); // outputs pitches for each chord, kinda inefficient
+                    }
                 }
-                */
-                System.out.println("pitch: " + pitches[k]); // right now, this successfully outputs the notes in the first chord
-                // determine how to move k along so we can grab each chord in the piece
             }
         }
 
