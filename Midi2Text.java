@@ -40,64 +40,29 @@ import java.io.*;
 import java.util.Enumeration;
 
 
-public class Midi2Text implements ActionListener
+public class Midi2Text
 {
-    private JFrame window;
-    private JButton convert;
+    //private JFrame window;
+    //private JButton convert;
 
     public static void main(String[] args) 
     { 
-		new Midi2Text();
-    }
-    
-
-    public Midi2Text() 
-    {
-		window = new JFrame("Midi2Text");
-		window.setSize(400, 220);
-		JPanel bg = new JPanel(new GridLayout(6,1));
-		// add instructions
-		JLabel text0 = new JLabel("MIDI file to Text File converter: by Andrew R. Brown", 0);
-		bg.add(text0);
-		JLabel text1 = new JLabel("1. Click the 'Convert' button", 0);
-		bg.add(text1);
-		JLabel text2 = new JLabel("2. Choose a MIDI file", 0);
-		bg.add(text2);
-		JLabel text3 = new JLabel("3. Name and save the text file", 0);
-		bg.add(text3);
-		// add button
-		JPanel btnPanel = new JPanel();
-		convert = new JButton("Convert");
-		convert.addActionListener(this);
-		btnPanel.add(convert);
-		bg.add(btnPanel);
-		// pad
-		bg.add(new JPanel());
-		// show
-		window.getContentPane().add(bg);
-		window.setVisible(true);
+		// new Midi2Text();
+		//convert.setEnabled(false);
+	    convert(args[0]);
+	    //convert.setEnabled(true);
     }
 
-    public void actionPerformed(ActionEvent e) 
-    {
-		if (e.getSource() == convert) 
-		{
-		    convert.setEnabled(false);
-		    convert();
-		    convert.setEnabled(true);
-		    //System.exit(0);
-		}
-    }
-
-    private void convert() 
+    public static void convert(String filename) 
     {
 		Score s = new Score();
-		Read.midi(s);
+		Read.midi(s, filename);
 		// open text file
 		try 
 		{
-		    FileWriter textFile = new FileWriter(saveData());
-		    textFile.write("Start Time" + "\t" + "Pitch" + "\t" + "Duration" + "\t" + "Dynamic" + "\n");
+			String[] temp = filename.split("\\."); // change filename from example.mid to example.txt
+		    FileWriter textFile = new FileWriter(temp[0] + ".txt");
+		    // textFile.write("Start Time" + "\t" + "Pitch" + "\t" + "Duration" + "\t" + "Dynamic" + "\n");
 		    // read note data and convert
 		    // get data values
 		    Enumeration enum1 = s.getPartList().elements(); // changed "enum" to "enum1" to avoid the keyword error
@@ -116,13 +81,13 @@ public class Midi2Text implements ActionListener
 
 						if (note.getPitch() != JMC.REST) {
 						    // start time
-						    textFile.write(Double.toString(startTime) + "\t");
+						    // textFile.write(Double.toString(startTime) + "\t");
 						    // pitch
 						    textFile.write(Integer.toString(note.getPitch()) + "\t");
 						    // duration
-						    textFile.write(Double.toString(note.getDuration()) + "\t");
+						    // textFile.write(Double.toString(note.getDuration()) + "\t");
 						    // velocity
-						    textFile.write(Integer.toString(note.getDynamic()) + "\n");
+						    // textFile.write(Integer.toString(note.getDynamic()) + "\n");
 						}
 
 						startTime += note.getDuration();
@@ -136,25 +101,6 @@ public class Midi2Text implements ActionListener
 		{
 		    System.err.println(e);
 		}    
-    }
-
- /** 
-    * Save the histogram data to a tab delimited text file
-    * with a file name to be specified by a dialog box.
-    */
-    public String saveData() 
-    {
-        FileDialog fd = new FileDialog(new Frame(), "Save data as a text file named...", FileDialog.SAVE);
-        //fd.show(); // something about a deprecated API -- changed this line to setVisible(true) and it works now.
-
-        fd.setVisible(true);
-
-        String fileName = fd.getFile();
-        if (fileName != null) 
-        {
-            fileName = fd.getDirectory() + fileName;
-        }
-		return fileName;
     }
 
 }
