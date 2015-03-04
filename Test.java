@@ -33,10 +33,6 @@ public class Test implements JMC
 {
     public static void main(String[] args)
     {
-        //System.out.println("Java works.");
-        //Score s = new Score(new Part(new Phrase(new Note(C4, MINIM))));
-        //Write.midi(s, "Test.mid");
-
         System.out.println("Importing " + args[0]);
 
         Score score = new Score();
@@ -46,9 +42,25 @@ public class Test implements JMC
         Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
         // 0.25 corresponds with quarter notes
 
-
         //String midiFileName = args[0]; // might be changed later on to the name of a modified midi file
         //runJFugueFile(midiFileName); // 
+
+        try // 
+        {
+            String directory = "C:\\Users\\Jack\\jmusic\\jmusic.jar";
+
+            Process pro = Runtime.getRuntime().exec("javac -classpath " + directory + " Midi2Text.java"); // compiles file
+            //System.out.println(pro.getInputStream());
+            //System.out.println(pro.getErrorStream());
+            pro.waitFor();
+            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. Midi2Text "); // runs file
+            //System.out.println(pro.getInputStream());
+            //System.out.println(pro.getErrorStream());
+            pro.waitFor();
+
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
 
 
 
@@ -147,16 +159,18 @@ public class Test implements JMC
         // javac -classpath C:\Users\Jack\Documents\spring_2015\jfugue-4.0.3.jar MusicString.java
         // java -cp C:\Users\Jack\Documents\spring_2015\jfugue-4.0.3.jar;. MusicString 
 
-        // on second thought -- musicString format is pretty gross
+        // on second thought -- musicString format is pretty gross (more information than we need, weird formatting, hard to extract information)
+
+        // if we can extract a .jfugue file, that might be more useful -- Nevermind, same thing happens
         try // 
         {
             String directory = "C:\\Users\\Jack\\Documents\\spring_2015\\jfugue-4.0.3.jar";
 
-            Process pro = Runtime.getRuntime().exec("javac -classpath " + directory + " MusicString.java");
+            Process pro = Runtime.getRuntime().exec("javac -classpath " + directory + " MusicString.java"); // compiles file
             //System.out.println(pro.getInputStream());
             //System.out.println(pro.getErrorStream());
             pro.waitFor();
-            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. MusicString " + filename);
+            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. MusicString " + filename); // runs file
             //System.out.println(pro.getInputStream());
             //System.out.println(pro.getErrorStream());
             pro.waitFor();
