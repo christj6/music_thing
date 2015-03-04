@@ -33,16 +33,17 @@ public class Test implements JMC
 {
     public static void main(String[] args)
     {
-        System.out.println("Importing " + args[0]);
+        String midiFileName = args[0]; // might be changed later on to the name of a modified midi file
+        System.out.println("Importing " + midiFileName);
 
         Score score = new Score();
 
-        Read.midi(score, args[0]); // check if args[0] is a valid midi file before you try reading it
+        Read.midi(score, midiFileName); // check if args[0] is a valid midi file before you try reading it
 
         Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
         // 0.25 corresponds with quarter notes
 
-        //String midiFileName = args[0]; // might be changed later on to the name of a modified midi file
+        
         //runJFugueFile(midiFileName); // 
 
         try // 
@@ -53,7 +54,7 @@ public class Test implements JMC
             //System.out.println(pro.getInputStream());
             //System.out.println(pro.getErrorStream());
             pro.waitFor();
-            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. Midi2Text "); // runs file
+            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. Midi2Text " + midiFileName); // runs file
             //System.out.println(pro.getInputStream());
             //System.out.println(pro.getErrorStream());
             pro.waitFor();
