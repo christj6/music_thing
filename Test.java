@@ -43,28 +43,6 @@ public class Test implements JMC
         Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
         // 0.25 corresponds with quarter notes
 
-        
-        //runJFugueFile(midiFileName); // 
-
-        try // 
-        {
-            String directory = "C:\\Users\\Jack\\jmusic\\jmusic.jar";
-
-            Process pro = Runtime.getRuntime().exec("javac -classpath " + directory + " Midi2Text.java"); // compiles file
-            //System.out.println(pro.getInputStream());
-            //System.out.println(pro.getErrorStream());
-            pro.waitFor();
-            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. Midi2Text " + midiFileName); // runs file
-            //System.out.println(pro.getInputStream());
-            //System.out.println(pro.getErrorStream());
-            pro.waitFor();
-
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-
-
-
         //for each chord in the midi file, extract the chord:
 
         // for each note in the chord, map the note to a left-hand finger (1 = index, 2 = middle, 3, 4) 
@@ -86,59 +64,41 @@ public class Test implements JMC
         // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
 
         
-        System.out.println("pitch array: ");
-        Part part = score.getPart(0);
-        Phrase phrase = part.getPhrase(0);
-        int i, j, k = 0;
-
-        int notesInCurrentChord = 0;
-
-
-        for (k = 0; k < 40; k++)
+        //System.out.println("pitch array: ");
+        //Part part = score.getPart(0);
+        //Phrase phrase = part.getPhrase(0);
+        
+        // this section adapted from http://explodingart.com/jmusic/applications/Midi2text.java
+        Enumeration enum1 = score.getPartList().elements(); // changed "enum" to "enum1" to avoid the keyword error
+        while(enum1.hasMoreElements())
         {
-            notesInCurrentChord = 0;
-            //System.out.println("Chord #" + (k+1));
-            //int[] whichNotes = new int[4];
-
-            for (i = 0; i < score.getSize(); i++)
+            Part part = (Part) enum1.nextElement();
+            Enumeration enum2 = part.getPhraseList().elements();
+            while(enum2.hasMoreElements())
             {
-                //System.out.println("i: " + i);
-
-                part = score.getPart(i);
-
-                for (j = 0; j < part.getSize(); j++)
+                Phrase phrase = (Phrase) enum2.nextElement();
+                double startTime = phrase.getStartTime(); 
+                Enumeration enum3 = phrase.getNoteList().elements();
+                while(enum3.hasMoreElements())
                 {
-                    //System.out.println("j: " + j);
+                    Note note = (Note) enum3.nextElement();
 
-                    phrase = part.getPhrase(j);
-
-                    int[] pitches = phrase.getPitchArray();
-
-                    /*
-                    for (int k = 0; k < phrase.getSize(); k++)
+                    if (note.getPitch() != JMC.REST) 
                     {
-                        System.out.println("k: " + k);
+                        // start time
+                        System.out.println("Start time: " + Double.toString(startTime));
+                        // pitch
+                        System.out.println("Pitch: " + Integer.toString(note.getPitch()));
+                        // duration
+                        System.out.println("Duration: " + Double.toString(note.getDuration()));
+                        // velocity
+                        System.out.println("Velocity: " + Integer.toString(note.getDynamic()));
+                        System.out.println("-------------------------------------------------");
 
-                        System.out.println("pitch: " + pitches[k]);
+                        // add the note to the bucket thing you were talking about
                     }
-                    */
-                    if (k < pitches.length && notesInCurrentChord < 4)
-                    {
-                        // System.out.println("pitch: " + pitches[k]); // outputs pitches for each chord, kinda inefficient
 
-                        notesInCurrentChord++; // takes another left-hand finger, UNLESS it can be played with an open string
-                        // takes another right-hand finger to pluck the chord, UNLESS the chord is being strummed instead of plucked
-                    }
-                }
-            }
-
-            if (notesInCurrentChord > 0)
-            {
-                System.out.println("Chord #" + (k+1));
-
-                for (int z = 0; z < notesInCurrentChord; z++)
-                {
-                    // print each note in chord?
+                    startTime += note.getDuration();
                 }
             }
         }
@@ -154,30 +114,15 @@ public class Test implements JMC
 
     }
 
-    public static void runJFugueFile(String filename)
+    public static boolean isChordPlayable(Note[] notes)
     {
-        // alternative idea: use a java process to compile/run a JFugue program, take in the midi file. export it into a txt file storing the music string with numbers
-        // javac -classpath C:\Users\Jack\Documents\spring_2015\jfugue-4.0.3.jar MusicString.java
-        // java -cp C:\Users\Jack\Documents\spring_2015\jfugue-4.0.3.jar;. MusicString 
+        // put some more code here
+        return true;
+    }
 
-        // on second thought -- musicString format is pretty gross (more information than we need, weird formatting, hard to extract information)
-
-        // if we can extract a .jfugue file, that might be more useful -- Nevermind, same thing happens
-        try // 
-        {
-            String directory = "C:\\Users\\Jack\\Documents\\spring_2015\\jfugue-4.0.3.jar";
-
-            Process pro = Runtime.getRuntime().exec("javac -classpath " + directory + " MusicString.java"); // compiles file
-            //System.out.println(pro.getInputStream());
-            //System.out.println(pro.getErrorStream());
-            pro.waitFor();
-            pro = Runtime.getRuntime().exec("java -cp " + directory + ";. MusicString " + filename); // runs file
-            //System.out.println(pro.getInputStream());
-            //System.out.println(pro.getErrorStream());
-            pro.waitFor();
-
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
+    public static boolean isTransitionReasonable(Note[] first, Note[] second)
+    {
+        // put some more code here
+        return true;
     }
 }
