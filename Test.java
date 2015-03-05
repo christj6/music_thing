@@ -113,13 +113,19 @@ public class Test implements JMC
 
 
     }
+    
+    // Note[] -> these should be linked lists, not arrays (probably)
 
-    public static boolean isChordPlayable(Note[] notes)
+    // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
+    // If the chord is playable, the function will return a Voicing object. If not, it'll return null.
+    public static boolean isChordPlayable(Note[] notes) 
     {
         // put some more code here
-        return true;
+        return true; // still need to figure out how the Voicing object will be set up/structured.
     }
 
+    // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
+    // if yes, it returns true. If not, it returns false
     public static boolean isTransitionReasonable(Note[] first, Note[] second)
     {
         // put some more code here
