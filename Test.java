@@ -120,7 +120,14 @@ public class Test implements JMC
     // If the chord is playable, the function will return a Voicing object. If not, it'll return null.
     public static boolean isChordPlayable(Note[] notes) 
     {
-        // put some more code here
+        // for each note in the chord:
+        // extract the note's pitch value
+        // find pitch on fretboard
+        // for example, pitch 50 (D4) yields a candidate array [-1, -1, -1, 0, 5, 10]
+        // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
+        // D4 cannot be played on any other string, so those slots in the array have -1.
+
+
         return true; // still need to figure out how the Voicing object will be set up/structured.
     }
 
@@ -130,5 +137,19 @@ public class Test implements JMC
     {
         // put some more code here
         return true;
+    }
+
+    // given two pitch values (for example, 60 and 72), this function determines if the two pitches are the same note but some # of octaves apart.
+    // I don't know where it will come in handy just yet.
+    public static boolean areTheseNotesOctavesApart (int pitch1, int pitch2)
+    {
+        if ((Math.abs(pitch1 - pitch2) % 12) == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
