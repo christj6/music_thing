@@ -63,6 +63,7 @@ public class Test implements JMC
 
         // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
 
+        Set<Double> uniqueStartTimes = new HashSet<Double>();
 
         
         // this section adapted from http://explodingart.com/jmusic/applications/Midi2text.java
@@ -93,8 +94,9 @@ public class Test implements JMC
                         System.out.println("Velocity: " + Integer.toString(note.getDynamic()));
                         System.out.println("-------------------------------------------------");
                         */
-                        
+
                         // gather start times
+                        uniqueStartTimes.add(startTime);
                     }
 
                     startTime += note.getDuration();
@@ -104,6 +106,15 @@ public class Test implements JMC
 
         // filter out start time array so it just has unique entries
         // sort start time array
+        Double[] times = uniqueStartTimes.toArray(new Double[uniqueStartTimes.size()]);
+        Arrays.sort(times);
+
+        /*
+        for (int i = 0; i < times.length; i++)
+        {
+            System.out.println(Double.toString(times[i])); // testing to make sure the times are stored correctly
+        }
+        */
 
         // create array of linked lists of note objects
         //
