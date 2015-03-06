@@ -118,6 +118,9 @@ public class Test implements JMC
 
         // create array of linked lists of note objects
         //
+        LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
+
+        // System.out.println(chordSequence.length);
 
         // 2nd time around
         enum1 = score.getPartList().elements();
@@ -140,6 +143,11 @@ public class Test implements JMC
                         // use it to perform binary search on start time array
                         // retrieve correct index
                         // add note to the linked list stored in the correct index
+                        // something like: chordSequence[index].enqueue(note)
+
+                        int index = Arrays.binarySearch(times, startTime);
+
+                        chordSequence[index].add(note); // null pointer exception here, currently troubleshooting this
 
                     }
 
