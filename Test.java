@@ -179,27 +179,36 @@ public class Test implements JMC
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
         // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
 
+        int maxLinesNeeded = 6;
+
         Score newArrangement = new Score();
-        Part part = new Part();
+        
 
-        for (int i = 0; i < chordSequence.length; i++)
+
+        for (int i = 0; i < maxLinesNeeded; i++)
         {
-            Phrase chord = new Phrase(times[i]);
+            Part part = new Part();
 
-            ListIterator<Note> listIterator = chordSequence[i].listIterator();
-
-            while (listIterator.hasNext()) 
+            for (int j = 0; j < chordSequence.length; j++)
             {
-                //System.out.println(listIterator.next());
-                chord.addNote(listIterator.next());
+
+                if (chordSequence[j].peek() != null)
+                {
+                    Phrase phrase = new Phrase(times[j]);
+
+                    phrase.add(chordSequence[j].remove()); // take one off the top of each linked list
+
+                    part.add(phrase);
+                }
+
+
             }
 
-            part.add(chord);
+            newArrangement.add(part);
         }
 
-        newArrangement.add(part);
-        View.notate(newArrangement); // GAHH, THIS ALMOST WORKED, but no polyphony, the notes of the chord played one after the other
-        // we will need as many Parts as the # of notes in the largest Linked List (in the case of guitar, 6 at most, but probably 4) 
+        
+        View.notate(newArrangement);
 
         // System.out.println(isTransitionReasonable(chordSequence[0], chordSequence[1]));
 
