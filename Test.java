@@ -31,6 +31,17 @@ import java.util.*;
  
 public class Test implements JMC 
 {
+
+    // constants
+    public static final int lowEString = 40;
+    public static final int aString = 45;
+    public static final int dString = 50;
+    public static final int gString = 55;
+    public static final int bString = 59;
+    public static final int highEString = 64;
+
+    public static final int highestPossibleNote = 84;
+
     public static void main(String[] args)
     {
         String midiFileName = args[0]; // might be changed later on to the name of a modified midi file
@@ -51,12 +62,12 @@ public class Test implements JMC
         
         // for standard tuning guitar, the lowest pitch is 40 (e3), and the highest pitch is 84 (c7)
         // idea: transpose the song up/down in such a way to allow in the most notes with minimal truncation (might not work)
-        if (score.getHighestPitch() > 84)
+        if (score.getHighestPitch() > highestPossibleNote)
         {
             System.out.println("Alert: some note(s) too high for standard-tuned guitar.");
         }
 
-        if (score.getLowestPitch() < 40)
+        if (score.getLowestPitch() < lowEString)
         {
             System.out.println("Alert: some note(s) too low for standard-tuned guitar.");
         }
@@ -119,6 +130,10 @@ public class Test implements JMC
         // create array of linked lists of note objects
         //
         LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
+        for (int i = 0; i < chordSequence.length; i++)
+        {
+            chordSequence[i] = new LinkedList<Note>();
+        }
 
         // System.out.println(chordSequence.length);
 
@@ -147,7 +162,9 @@ public class Test implements JMC
 
                         int index = Arrays.binarySearch(times, startTime);
 
-                        chordSequence[index].add(note); // null pointer exception here, currently troubleshooting this
+                        //System.out.println("index: " + index);
+
+                        chordSequence[index].add(note);
 
                     }
 
@@ -179,6 +196,21 @@ public class Test implements JMC
         // for example, pitch 50 (D4) yields a candidate array [-1, -1, -1, 0, 5, 10] --> [50 - 64, 50 - 59, 50 - 55, 50 - 50, 50 - 45, 50 - 40], disregard negative entries
         // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
         // D4 cannot be played on any other string, so those slots in the array have -1.
+
+        int pitch = 40; // whatever the first pitch is
+
+        int[] candidates = {highEString, bString, gString, dString, aString, lowEString}; // 6 strings in a guitar
+
+        for (int i = 0; i < candidates.length; i++)
+        {
+            candidates[i] = pitch - candidates[i];
+
+            if (candidates[i] < 0 || candidates[i] > (highestPossibleNote - highEString))
+            {
+                candidates[i] = -1; // set it to -1 if it's an invalid fret # (either less than 0, or greater than 20)
+            }
+        }
+
 
         // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
         // G: [x, x, 0, 5, 10, 15]
