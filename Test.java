@@ -162,7 +162,7 @@ public class Test implements JMC
 
                         int index = Arrays.binarySearch(times, startTime);
 
-                        //System.out.println("index: " + index);
+                        System.out.println("index: " + index + ", pitch: " + note.getPitch());
 
                         chordSequence[index].add(note);
 
@@ -173,7 +173,13 @@ public class Test implements JMC
             }
         }
 
-        
+        // do something to process the notes here
+
+        // when we're done messing with the notes, we will probably iterate through all the notes in the chordSequence array,
+        // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
+        // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
+
+        // System.out.println(isTransitionReasonable(chordSequence[0], chordSequence[1]));
 
         //System.out.println("note array: " + score.getNoteArray());
 
@@ -183,12 +189,10 @@ public class Test implements JMC
 
 
     }
-    
-    // Note[] -> these should be linked lists, not arrays (probably)
 
     // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
     // If the chord is playable, the function will return a Voicing object. If not, it'll return null.
-    public static boolean isChordPlayable(Note[] notes) 
+    public static boolean isChordPlayable(LinkedList<Note> notes) 
     {
         // for each note in the chord:
         // extract the note's pitch value
@@ -222,6 +226,11 @@ public class Test implements JMC
         // When we find the next valid fret #, the # must be greater than or equal to the fret # that the index finger is assigned to.
         // We will assign the next finger (middle) to that and continue on.
 
+        // how about we keep track of the smallest fret # candidate for each of the notes?
+        // so, in that C major chord example, we iterate through the candidate arrays until G holds 0 on G-string, E holds 2 on D-string,
+        // and C holds 3 on A-string. Each one grabs the first valid fret #. Whichever one is the smallest (that is not zero) gets the index finger.
+        // This ensures that the index finger goes as far left on the fretboard as possible.
+
 
 
         return true; // still need to figure out how the Voicing object will be set up/structured.
@@ -229,7 +238,7 @@ public class Test implements JMC
 
     // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
     // if yes, it returns true. If not, it returns false
-    public static boolean isTransitionReasonable(Note[] first, Note[] second)
+    public static boolean isTransitionReasonable(LinkedList<Note> first, LinkedList<Note> second)
     {
         // put some more code here
         return true;
