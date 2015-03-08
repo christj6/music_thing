@@ -179,36 +179,10 @@ public class Test implements JMC
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
         // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
 
-        int maxLinesNeeded = 6;
-
-        Score newArrangement = new Score();
-        
-
-
-        for (int i = 0; i < maxLinesNeeded; i++)
-        {
-            Part part = new Part();
-
-            for (int j = 0; j < chordSequence.length; j++)
-            {
-
-                if (chordSequence[j].peek() != null)
-                {
-                    Phrase phrase = new Phrase(times[j]);
-
-                    phrase.add(chordSequence[j].remove()); // take one off the top of each linked list
-
-                    part.add(phrase);
-                }
-
-
-            }
-
-            newArrangement.add(part);
-        }
+        Score newArrangement = convertStructureToScore(chordSequence, times);
 
         
-        View.notate(newArrangement);
+        // View.notate(newArrangement); // null pointer exception if the piece is too large
 
         // System.out.println(isTransitionReasonable(chordSequence[0], chordSequence[1]));
 
@@ -219,6 +193,42 @@ public class Test implements JMC
         // MuseScore's way better though, just import midi files with that
 
 
+    }
+
+    // takes in an array of linked lists of Notes as an input, outputs an equivalent score
+    public static Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
+    {
+        int maxLinesNeeded = 6; // find length of longest linked list in structure
+
+        Score newArrangement = new Score();
+        
+
+
+        for (int i = 0; i < maxLinesNeeded; i++)
+        {
+            Part part = new Part();
+
+            for (int j = 0; j < structure.length; j++)
+            {
+
+                if (structure[j].peek() != null)
+                {
+                    Phrase phrase = new Phrase(times[j]);
+
+                    // System.out.println("pitch: " + structure[j].peek().getPitch());
+
+                    phrase.add(structure[j].remove()); // take one off the top of each linked list
+
+                    part.add(phrase); 
+                }
+
+
+            }
+
+            newArrangement.add(part);
+        }
+
+        return newArrangement;
     }
 
     // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
@@ -232,19 +242,7 @@ public class Test implements JMC
         // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
         // D4 cannot be played on any other string, so those slots in the array have -1.
 
-        int pitch = 40; // whatever the first pitch is
-
-        int[] candidates = {highEString, bString, gString, dString, aString, lowEString}; // 6 strings in a guitar
-
-        for (int i = 0; i < candidates.length; i++)
-        {
-            candidates[i] = pitch - candidates[i];
-
-            if (candidates[i] < 0 || candidates[i] > (highestPossibleNote - highEString))
-            {
-                candidates[i] = -1; // set it to -1 if it's an invalid fret # (either less than 0, or greater than 20)
-            }
-        }
+        
 
 
         // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
@@ -265,6 +263,26 @@ public class Test implements JMC
 
 
         return true; // still need to figure out how the Voicing object will be set up/structured.
+    }
+
+    // takes in a pitch value (for example, 40) as input, outputs a 6 integer array such as [-1, -1, -1, -1, -1, 0]
+    public static int[] candidateArray (int pitch)
+    {
+        // int pitch = 40; // whatever the first pitch is
+
+        int[] candidates = {highEString, bString, gString, dString, aString, lowEString}; // 6 strings in a guitar
+
+        for (int i = 0; i < candidates.length; i++)
+        {
+            candidates[i] = pitch - candidates[i];
+
+            if (candidates[i] < 0 || candidates[i] > (highestPossibleNote - highEString))
+            {
+                candidates[i] = -1; // set it to -1 if it's an invalid fret # (either less than 0, or greater than 20)
+            }
+        }
+
+        return candidates;
     }
 
     // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
