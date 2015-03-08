@@ -74,51 +74,8 @@ public class Test implements JMC
 
         // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
 
-        Set<Double> uniqueStartTimes = new HashSet<Double>();
-
-        
-        // this section adapted from http://explodingart.com/jmusic/applications/Midi2text.java
-        Enumeration enum1 = score.getPartList().elements(); // changed "enum" to "enum1" to avoid the keyword error
-        while(enum1.hasMoreElements())
-        {
-            Part part = (Part) enum1.nextElement();
-            Enumeration enum2 = part.getPhraseList().elements();
-            while(enum2.hasMoreElements())
-            {
-                Phrase phrase = (Phrase) enum2.nextElement();
-                double startTime = phrase.getStartTime(); 
-                Enumeration enum3 = phrase.getNoteList().elements();
-                while(enum3.hasMoreElements())
-                {
-                    Note note = (Note) enum3.nextElement();
-
-                    if (note.getPitch() != JMC.REST) 
-                    {
-                        /*
-                        // start time
-                        System.out.println("Start time: " + Double.toString(startTime));
-                        // pitch
-                        System.out.println("Pitch: " + Integer.toString(note.getPitch()));
-                        // duration
-                        System.out.println("Duration: " + Double.toString(note.getDuration()));
-                        // velocity
-                        System.out.println("Velocity: " + Integer.toString(note.getDynamic()));
-                        System.out.println("-------------------------------------------------");
-                        */
-
-                        // gather start times
-                        uniqueStartTimes.add(startTime);
-                    }
-
-                    startTime += note.getDuration();
-                }
-            }
-        }
-
-        // filter out start time array so it just has unique entries
-        // sort start time array
-        Double[] times = uniqueStartTimes.toArray(new Double[uniqueStartTimes.size()]);
-        Arrays.sort(times);
+        Double[] times = new Double[3]; // specific value doesn't matter, we reassign it anyway
+        times = sortedUniqueStartTimes(score);
 
         /*
         for (int i = 0; i < times.length; i++)
@@ -138,7 +95,7 @@ public class Test implements JMC
         // System.out.println(chordSequence.length);
 
         // 2nd time around
-        enum1 = score.getPartList().elements();
+        Enumeration enum1 = score.getPartList().elements();
         while(enum1.hasMoreElements())
         {
             Part part = (Part) enum1.nextElement();
@@ -195,10 +152,60 @@ public class Test implements JMC
 
     }
 
+    public static Double[] sortedUniqueStartTimes(Score score)
+    {
+        Set<Double> uniqueStartTimes = new HashSet<Double>();
+
+        // this section adapted from http://explodingart.com/jmusic/applications/Midi2text.java
+        Enumeration enum1 = score.getPartList().elements(); // changed "enum" to "enum1" to avoid the keyword error
+        while(enum1.hasMoreElements())
+        {
+            Part part = (Part) enum1.nextElement();
+            Enumeration enum2 = part.getPhraseList().elements();
+            while(enum2.hasMoreElements())
+            {
+                Phrase phrase = (Phrase) enum2.nextElement();
+                double startTime = phrase.getStartTime(); 
+                Enumeration enum3 = phrase.getNoteList().elements();
+                while(enum3.hasMoreElements())
+                {
+                    Note note = (Note) enum3.nextElement();
+
+                    if (note.getPitch() != JMC.REST) 
+                    {
+                        /*
+                        // start time
+                        System.out.println("Start time: " + Double.toString(startTime));
+                        // pitch
+                        System.out.println("Pitch: " + Integer.toString(note.getPitch()));
+                        // duration
+                        System.out.println("Duration: " + Double.toString(note.getDuration()));
+                        // velocity
+                        System.out.println("Velocity: " + Integer.toString(note.getDynamic()));
+                        System.out.println("-------------------------------------------------");
+                        */
+
+                        // gather start times
+                        uniqueStartTimes.add(startTime);
+                    }
+
+                    startTime += note.getDuration();
+                }
+            }
+        }
+
+        // filter out start time array so it just has unique entries
+        // sort start time array
+        Double[] times = uniqueStartTimes.toArray(new Double[uniqueStartTimes.size()]);
+        Arrays.sort(times);
+
+        return times;
+    }
+
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
     public static Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
     {
-        int maxLinesNeeded = 6; // find length of longest linked list in structure
+        int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because 6 strings
 
         Score newArrangement = new Score();
         
