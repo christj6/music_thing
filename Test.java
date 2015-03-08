@@ -77,60 +77,10 @@ public class Test implements JMC
         Double[] times = new Double[3]; // specific value doesn't matter, we reassign it anyway
         times = sortedUniqueStartTimes(score);
 
-        /*
-        for (int i = 0; i < times.length; i++)
-        {
-            System.out.println(Double.toString(times[i])); // testing to make sure the times are stored correctly
-        }
-        */
-
-        // create array of linked lists of note objects
-        //
         LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
-        for (int i = 0; i < chordSequence.length; i++)
-        {
-            chordSequence[i] = new LinkedList<Note>();
-        }
+        chordSequence = chordSequenceArray(score, times);
 
-        // System.out.println(chordSequence.length);
-
-        // 2nd time around
-        Enumeration enum1 = score.getPartList().elements();
-        while(enum1.hasMoreElements())
-        {
-            Part part = (Part) enum1.nextElement();
-            Enumeration enum2 = part.getPhraseList().elements();
-            while(enum2.hasMoreElements())
-            {
-                Phrase phrase = (Phrase) enum2.nextElement();
-                double startTime = phrase.getStartTime(); 
-                Enumeration enum3 = phrase.getNoteList().elements();
-                while(enum3.hasMoreElements())
-                {
-                    Note note = (Note) enum3.nextElement();
-
-                    if (note.getPitch() != JMC.REST) 
-                    {
-                        // retrieve start time of note
-                        // use it to perform binary search on start time array
-                        // retrieve correct index
-                        // add note to the linked list stored in the correct index
-                        // something like: chordSequence[index].enqueue(note)
-
-                        int index = Arrays.binarySearch(times, startTime);
-
-                        System.out.println("index: " + index + ", pitch: " + note.getPitch());
-
-                        chordSequence[index].add(note);
-
-                    }
-
-                    startTime += note.getDuration();
-                }
-            }
-        }
-
-        // do something to process the notes here
+        // do something to process the notes here (mess with chordSequence)
 
         // when we're done messing with the notes, we will probably iterate through all the notes in the chordSequence array,
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
@@ -200,6 +150,53 @@ public class Test implements JMC
         Arrays.sort(times);
 
         return times;
+    }
+
+    public static LinkedList<Note>[] chordSequenceArray(Score score, Double[] times)
+    {
+        LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
+
+        for (int i = 0; i < chordSequence.length; i++)
+        {
+            chordSequence[i] = new LinkedList<Note>();
+        }
+
+        Enumeration enum1 = score.getPartList().elements();
+        while(enum1.hasMoreElements())
+        {
+            Part part = (Part) enum1.nextElement();
+            Enumeration enum2 = part.getPhraseList().elements();
+            while(enum2.hasMoreElements())
+            {
+                Phrase phrase = (Phrase) enum2.nextElement();
+                double startTime = phrase.getStartTime(); 
+                Enumeration enum3 = phrase.getNoteList().elements();
+                while(enum3.hasMoreElements())
+                {
+                    Note note = (Note) enum3.nextElement();
+
+                    if (note.getPitch() != JMC.REST) 
+                    {
+                        // retrieve start time of note
+                        // use it to perform binary search on start time array
+                        // retrieve correct index
+                        // add note to the linked list stored in the correct index
+                        // something like: chordSequence[index].enqueue(note)
+
+                        int index = Arrays.binarySearch(times, startTime);
+
+                        //System.out.println("index: " + index + ", pitch: " + note.getPitch());
+
+                        chordSequence[index].add(note);
+
+                    }
+
+                    startTime += note.getDuration();
+                }
+            }
+        }
+
+        return chordSequence;
     }
 
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
