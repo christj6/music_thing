@@ -10,7 +10,7 @@
 // java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test 
 
 // to import file (this example called "file.mid"):
-// java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid output.midd
+// java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid output.mid
 
 // to add to the git:
 // delete the folder, git clone https://github.com/christj6/music_thing
@@ -52,7 +52,7 @@ public class Test implements JMC
 
         Read.midi(score, inputFile); // check if args[0] is a valid midi file before you try reading it
 
-        // Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
+        // Mod.quantise(score, 4); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
         // 0.25 corresponds with quarter notes
 
         //for each chord in the midi file, extract the chord:
@@ -90,19 +90,6 @@ public class Test implements JMC
         Score newArrangement = convertStructureToScore(chordSequence, times);
 
         Write.midi(newArrangement, outputFile);
-
-        
-        // View.notate(newArrangement); // null pointer exception if the piece is too large
-
-        // System.out.println(isTransitionReasonable(chordSequence[0], chordSequence[1]));
-
-        //System.out.println("note array: " + score.getNoteArray());
-
-
-        //View.notate(score); // make the sheet music appear on the screen in cpn
-        // MuseScore's way better though, just import midi files with that
-
-
     }
 
     public static Double[] sortedUniqueStartTimes(Score score)
@@ -132,7 +119,7 @@ public class Test implements JMC
                     }
                     
 
-                    //uniqueStartTimes.add(startTime); // includes rests
+                    // uniqueStartTimes.add(startTime); // includes rests
 
                     startTime += note.getDuration();
                 }
@@ -178,11 +165,17 @@ public class Test implements JMC
                         // use it to perform binary search on start time array
                         // retrieve correct index
                         // add note to the linked list stored in the correct index
-                        // something like: chordSequence[index].enqueue(note)
 
                         int index = Arrays.binarySearch(times, startTime);
 
-                        //System.out.println("index: " + index + ", pitch: " + note.getPitch());
+                        /*
+                        if (index < times.length - 1 && index > -1)
+                        {
+                            //note.setDuration(times[index+1] - times[index]);
+                        }
+                        */
+
+                        // System.out.println("index: " + index + ", time: " + times[index] + ", pitch: " + note.getPitch());
 
                         chordSequence[index].add(note);
                     }
@@ -203,7 +196,7 @@ public class Test implements JMC
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
     public static Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
     {
-        int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because 6 strings
+        int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because guitars usually have 6 strings
 
         Score newArrangement = new Score();
         
@@ -220,21 +213,15 @@ public class Test implements JMC
                 {
                     Phrase phrase = new Phrase(times[j]);
 
-                    // System.out.println("pitch: " + structure[j].peek().getPitch());
+                    Note note = structure[j].remove(); // take one off the top of each linked list
 
-                    Note note = structure[j].remove();
-
-                    // change duration of note to (times[i+1] - times[i])
-                    /*
-                    if (j < structure.length - 1)
+                    if (note.getPitch() >= lowEString && note.getPitch() <= highestPossibleNote)
                     {
-                        note.setDuration(times[j+1] - times[j]);
+                        phrase.add(note); 
+
+                        part.add(phrase); 
                     }
-                    */
-
-                    phrase.add(note); // take one off the top of each linked list
-
-                    part.add(phrase); 
+                    // else ignore the note, the guitar can't play it anyway
                 }
 
 
