@@ -82,12 +82,14 @@ public class Test implements JMC
         chordSequence = chordSequenceArray(score, times);
 
         // do something to process the notes here (mess with chordSequence)
+        LinkedList<Note>[] newSequence = new LinkedList[times.length];
+        newSequence = processNotes(chordSequence);
 
         // when we're done messing with the notes, we will probably iterate through all the notes in the chordSequence array,
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
         // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
 
-        Score newArrangement = convertStructureToScore(chordSequence, times);
+        Score newArrangement = convertStructureToScore(newSequence, times);
 
         Write.midi(newArrangement, outputFile);
     }
@@ -193,14 +195,23 @@ public class Test implements JMC
         return chordSequence;
     }
 
+    // process each chord to see if a human can play it
+    // if not, modify the chord in some way?
+    // process transitions sequentially, see if a human can move their hand that quickly
+    // if not, do something else?
+    // return the modified structure
+    public static LinkedList<Note>[] processNotes (LinkedList<Note>[] structure)
+    {
+        // do stuff here
+        return structure;
+    }
+
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
     public static Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
     {
         int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because guitars usually have 6 strings
 
         Score newArrangement = new Score();
-        
-
 
         for (int i = 0; i < maxLinesNeeded; i++)
         {
@@ -208,23 +219,21 @@ public class Test implements JMC
 
             for (int j = 0; j < structure.length; j++)
             {
-
                 if (structure[j].peek() != null)
                 {
                     Phrase phrase = new Phrase(times[j]);
 
                     Note note = structure[j].remove(); // take one off the top of each linked list
 
+                    // should remove this if statement, move it to the processNotes function.
+                    // it's not the responsibility of the convert function to determine which notes should or should not be played
                     if (note.getPitch() >= lowEString && note.getPitch() <= highestPossibleNote)
                     {
                         phrase.add(note); 
-
                         part.add(phrase); 
                     }
                     // else ignore the note, the guitar can't play it anyway
                 }
-
-
             }
 
             newArrangement.add(part);
