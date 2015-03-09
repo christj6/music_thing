@@ -4,12 +4,9 @@
 
 // using Windows cmd:
 // compile with
-// javac -classpath C:\Users\Jack\jmusic\jmusic.jar Test.java
+// javac -cp C:\Users\Jack\jmusic\jmusic.jar Test.java Voicing.java
 
 // run with
-// java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test 
-
-// to import file (this example called "file.mid"):
 // java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid output.mid
 
 // to add to the git:
@@ -44,7 +41,7 @@ public class Test implements JMC
 
     public static void main(String[] args)
     {
-        String inputFile = args[0]; // might be changed later on to the name of a modified midi file
+        String inputFile = args[0];
         String outputFile = args[1];
         System.out.println("Importing " + inputFile);
 
@@ -253,7 +250,7 @@ public class Test implements JMC
         // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
         // D4 cannot be played on any other string, so those slots in the array have -1.
 
-        
+         Voicing voic = new Voicing();
 
 
         // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
