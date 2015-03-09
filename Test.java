@@ -10,7 +10,7 @@
 // java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test 
 
 // to import file (this example called "file.mid"):
-// java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid
+// java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid output.midd
 
 // to add to the git:
 // delete the folder, git clone https://github.com/christj6/music_thing
@@ -44,14 +44,15 @@ public class Test implements JMC
 
     public static void main(String[] args)
     {
-        String midiFileName = args[0]; // might be changed later on to the name of a modified midi file
-        System.out.println("Importing " + midiFileName);
+        String inputFile = args[0]; // might be changed later on to the name of a modified midi file
+        String outputFile = args[1];
+        System.out.println("Importing " + inputFile);
 
         Score score = new Score();
 
-        Read.midi(score, midiFileName); // check if args[0] is a valid midi file before you try reading it
+        Read.midi(score, inputFile); // check if args[0] is a valid midi file before you try reading it
 
-        Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
+        // Mod.quantise(score, 0.25); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
         // 0.25 corresponds with quarter notes
 
         //for each chord in the midi file, extract the chord:
@@ -88,6 +89,8 @@ public class Test implements JMC
 
         Score newArrangement = convertStructureToScore(chordSequence, times);
 
+        Write.midi(newArrangement, outputFile);
+
         
         // View.notate(newArrangement); // null pointer exception if the piece is too large
 
@@ -121,23 +124,15 @@ public class Test implements JMC
                 {
                     Note note = (Note) enum3.nextElement();
 
+                    
                     if (note.getPitch() != JMC.REST) 
                     {
-                        /*
-                        // start time
-                        System.out.println("Start time: " + Double.toString(startTime));
-                        // pitch
-                        System.out.println("Pitch: " + Integer.toString(note.getPitch()));
-                        // duration
-                        System.out.println("Duration: " + Double.toString(note.getDuration()));
-                        // velocity
-                        System.out.println("Velocity: " + Integer.toString(note.getDynamic()));
-                        System.out.println("-------------------------------------------------");
-                        */
-
                         // gather start times
                         uniqueStartTimes.add(startTime);
                     }
+                    
+
+                    //uniqueStartTimes.add(startTime); // includes rests
 
                     startTime += note.getDuration();
                 }
@@ -152,6 +147,7 @@ public class Test implements JMC
         return times;
     }
 
+    // idea: go through each note and make sure the duration is equal to times[i+1] - times[i]
     public static LinkedList<Note>[] chordSequenceArray(Score score, Double[] times)
     {
         LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
@@ -175,6 +171,7 @@ public class Test implements JMC
                 {
                     Note note = (Note) enum3.nextElement();
 
+                    
                     if (note.getPitch() != JMC.REST) 
                     {
                         // retrieve start time of note
@@ -188,8 +185,12 @@ public class Test implements JMC
                         //System.out.println("index: " + index + ", pitch: " + note.getPitch());
 
                         chordSequence[index].add(note);
-
                     }
+                    
+
+                    //int index = Arrays.binarySearch(times, startTime);
+
+                    //chordSequence[index].add(note);
 
                     startTime += note.getDuration();
                 }
@@ -221,7 +222,17 @@ public class Test implements JMC
 
                     // System.out.println("pitch: " + structure[j].peek().getPitch());
 
-                    phrase.add(structure[j].remove()); // take one off the top of each linked list
+                    Note note = structure[j].remove();
+
+                    // change duration of note to (times[i+1] - times[i])
+                    /*
+                    if (j < structure.length - 1)
+                    {
+                        note.setDuration(times[j+1] - times[j]);
+                    }
+                    */
+
+                    phrase.add(note); // take one off the top of each linked list
 
                     part.add(phrase); 
                 }
