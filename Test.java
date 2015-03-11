@@ -4,7 +4,7 @@
 
 // using Windows cmd:
 // compile with
-// javac -cp C:\Users\Jack\jmusic\jmusic.jar Test.java Voicing.java
+// javac -cp C:\Users\Jack\jmusic\jmusic.jar *.java
 
 // run with
 // java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid output.mid
@@ -200,6 +200,9 @@ public class Test implements JMC
     public static LinkedList<Note>[] processNotes (LinkedList<Note>[] structure)
     {
         // do stuff here
+
+        System.out.println(isChordPlayable(structure[0]));
+
         return structure;
     }
 
@@ -250,7 +253,7 @@ public class Test implements JMC
         // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
         // D4 cannot be played on any other string, so those slots in the array have -1.
 
-         Voicing voic = new Voicing();
+         Voicing voic = new Voicing(notes);
 
 
         // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
