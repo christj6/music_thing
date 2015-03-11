@@ -5,6 +5,9 @@ import jm.music.tools.*;
 import jm.midi.*;
 import jm.util.*;
 
+import java.io.*;
+import java.util.*;
+
 // function will take LinkedList of Note objects as input, create a Voicing object if the chord is valid (can be played by a human)
 public class Voicing
 {
@@ -15,25 +18,75 @@ public class Voicing
 	// If we are estimating the distance between two positions (based on average of left hand finger positions?), don't include the 0 fret for open strings
 	
 	// attributes
-	private Note[] chord;
+	private LinkedList<Note> chord;
+	private int numberOfNotes;
+	private Tuple[] positions;
+
 
 	// constants
 	public static final int maximumPolyphony = 6; // 6 strings, can be strummed simultaneously
 
+    public static final int lowEString = 40; // string #6, aka lowest possible note
+    public static final int aString = 45;
+    public static final int dString = 50;
+    public static final int gString = 55;
+    public static final int bString = 59;
+    public static final int highEString = 64; // pitch of string #1
 
-	// constructor
+    public static final int highestPossibleNote = 84;
+
 	public Voicing()
 	{
+		// empty constructor
+	}
+
+	// constructor
+	public Voicing(LinkedList<Note> notes)
+	{
 		// this.setAttribute(attr);
-		for (int i = 0; i < maximumPolyphony; i++)
+		
+		chord = notes;
+		numberOfNotes = chord.size();
+		positions = new Tuple[numberOfNotes];
+
+		for (int i = 0; i < positions.length; i++)
 		{
-			chord[i] = new Note();
+			//
 		}
 	}
 
 	// setters
 
 	// getters
+
+	// takes in pitch value, returns position with lowest fret value
+	public Tuple getPosition (int pitch)
+	{
+
+		return null;
+	}
+
+	// takes in string and fret number, returns pitch value
+	public int getPitch (int stringNum, int fretNum)
+	{
+		switch(stringNum)
+		{
+			case 1:
+				return highEString + fretNum;
+			case 2:
+				return bString + fretNum;
+			case 3:
+				return gString + fretNum;
+			case 4:
+				return dString + fretNum;
+			case 5:
+				return aString + fretNum;
+			case 6:
+				return lowEString + fretNum;
+			default:
+				return -1;
+		}
+	}
 
 	// some sort of compare method
 }
