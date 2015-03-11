@@ -42,16 +42,14 @@ public class Voicing
 
 	// constructor
 	public Voicing(LinkedList<Note> notes)
-	{
-		// this.setAttribute(attr);
-		
+	{		
 		chord = notes;
 		numberOfNotes = chord.size();
 		positions = new Tuple[numberOfNotes];
 
 		for (int i = 0; i < positions.length; i++)
 		{
-			//
+			// do thing here
 		}
 	}
 
@@ -59,11 +57,27 @@ public class Voicing
 
 	// getters
 
-	// takes in pitch value, returns position with lowest fret value
-	public Tuple getPosition (int pitch)
+	// takes in pitch value & string, returns fret value
+	public int getFret (int stringNum, int pitch)
 	{
-
-		return null;
+		switch(stringNum)
+		{
+			case 1:
+				return pitch - highEString;
+			case 2:
+				return pitch - bString;
+			case 3:
+				return pitch - gString;
+			case 4:
+				return pitch - dString;
+			case 5:
+				return pitch - aString;
+			case 6:
+				return pitch - lowEString;
+			default:
+				return -1;
+		}
+		//return null;
 	}
 
 	// takes in string and fret number, returns pitch value
