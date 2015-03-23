@@ -70,6 +70,14 @@ public class Test implements JMC
             System.out.println("Alert: some note(s) too low for standard-tuned guitar.");
         }
 
+        int transposeValue = bestTransposition(score);
+
+        System.out.println("transpose: " + transposeValue); // something buggy here -- simple.mid is best not transposed at all, but it says to take it up 2 semitones?
+
+
+
+
+
         // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
 
         Double[] times = new Double[3]; // specific value doesn't matter, we reassign it anyway
@@ -318,5 +326,109 @@ public class Test implements JMC
         }
 
         // alternative approach: take in an array of pitch values as input, take the sum of them, see if the sum mod 12 is 0
+    }
+
+    public static int bestTransposition (Score score)
+    {
+        int maxMoveUp = highestPossibleNote - score.getHighestPitch(); // the most # of semitones the piece can go up.
+        int maxMoveDown = score.getLowestPitch() - lowEString; // the most # of semitones the piece can go down
+        //
+
+        int openNotes = countOpenNotes(score); // call on original, unmodified score
+
+        int maxOpenNotes = openNotes; // not compared to anything else yet, is current max
+        int transposeValue = 0;
+
+        for (int i = 1; i <= maxMoveUp; i++)
+        {
+            Score copy = score;
+            Mod.transpose(copy, i);
+            openNotes = countOpenNotes(copy);
+
+            if (openNotes > maxOpenNotes)
+            {
+                maxOpenNotes = openNotes;
+                transposeValue = i;
+            }
+
+        }
+
+        for (int i = 1; i <= maxMoveDown; i++)
+        {
+            Score copy = score;
+            Mod.transpose(copy, -i);
+            openNotes = countOpenNotes(copy);
+
+            if (openNotes > maxOpenNotes)
+            {
+                maxOpenNotes = openNotes;
+                transposeValue = -i;
+            }
+        }
+
+
+        return transposeValue;
+    }
+
+    public static int countOpenNotes(Score score)
+    {
+        int openNotes = 0;
+
+        Enumeration enum1 = score.getPartList().elements();
+        while(enum1.hasMoreElements())
+        {
+            Part part = (Part) enum1.nextElement();
+            Enumeration enum2 = part.getPhraseList().elements();
+            while(enum2.hasMoreElements())
+            {
+                Phrase phrase = (Phrase) enum2.nextElement();
+                //double startTime = phrase.getStartTime(); 
+                Enumeration enum3 = phrase.getNoteList().elements();
+                while(enum3.hasMoreElements())
+                {
+                    Note note = (Note) enum3.nextElement();
+
+                    if (isOpenNote(note.getPitch())) 
+                    {
+                        openNotes++;
+                    }
+                }
+            }
+        }
+
+        return openNotes;
+    }
+
+    // given a pitch value, determines if it's one of the open notes on the guitar
+    public static boolean isOpenNote(int pitchValue)
+    {
+        if (pitchValue == lowEString)
+        {
+            return true;
+        }
+        if (pitchValue == aString)
+        {
+            return true;
+        }
+        if (pitchValue == dString)
+        {
+            return true;
+        }
+        if (pitchValue == gString)
+        {
+            return true;
+        }
+        if (pitchValue == bString)
+        {
+            return true;
+        }
+        if (pitchValue == highEString)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
