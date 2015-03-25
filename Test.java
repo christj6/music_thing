@@ -37,7 +37,15 @@ public class Test implements JMC
     public static final int bString = 59;
     public static final int highEString = 64;
 
-    public static final int highestPossibleNote = 84;
+    public static final int highestPossibleNote = 84; // assumes the guitar has 20 frets
+
+    // fingers
+    // left hand (fretboard)
+    int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
+    Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
+
+    // right hand (strings)
+    int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
 
     public static void main(String[] args)
     {
@@ -72,7 +80,7 @@ public class Test implements JMC
 
         int transposeValue = bestTransposition(score);
 
-        System.out.println("transpose: " + transposeValue); // something buggy here -- simple.mid is best not transposed at all, but it says to take it up 2 semitones?
+        System.out.println("transpose: " + transposeValue);
 
 
 
@@ -88,7 +96,7 @@ public class Test implements JMC
 
         // do something to process the notes here (mess with chordSequence)
         LinkedList<Note>[] newSequence = new LinkedList[times.length];
-        newSequence = processNotes(chordSequence);
+        newSequence = processNotes(chordSequence, times);
 
         // when we're done messing with the notes, we will probably iterate through all the notes in the chordSequence array,
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
@@ -164,7 +172,6 @@ public class Test implements JMC
                 while(enum3.hasMoreElements())
                 {
                     Note note = (Note) enum3.nextElement();
-
                     
                     if (note.getPitch() != JMC.REST) 
                     {
@@ -175,27 +182,15 @@ public class Test implements JMC
 
                         int index = Arrays.binarySearch(times, startTime);
 
-                        /*
-                        if (index < times.length - 1 && index > -1)
-                        {
-                            //note.setDuration(times[index+1] - times[index]);
-                        }
-                        */
-
-                        // System.out.println("index: " + index + ", time: " + times[index] + ", pitch: " + note.getPitch());
-
                         chordSequence[index].add(note);
                     }
-                    
-
-                    //int index = Arrays.binarySearch(times, startTime);
-
-                    //chordSequence[index].add(note);
 
                     startTime += note.getDuration();
                 }
             }
         }
+
+        // Collections.sort(chordSequence, new MyComparator());
 
         return chordSequence;
     }
@@ -205,13 +200,194 @@ public class Test implements JMC
     // process transitions sequentially, see if a human can move their hand that quickly
     // if not, do something else?
     // return the modified structure
-    public static LinkedList<Note>[] processNotes (LinkedList<Note>[] structure)
+    public static LinkedList<Note>[] processNotes (LinkedList<Note>[] structure, Double[] times)
     {
         // do stuff here
 
-        System.out.println(isChordPlayable(structure[0]));
+        //System.out.println();
+
+        assignFingers(structure[0], times[0]); // put a loop and and i here
 
         return structure;
+    }
+
+    // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
+    public static void assignFingers(LinkedList<Note> notes, Double start) 
+    {
+        // for each note in the chord:
+        // extract the note's pitch value
+        // find pitch on fretboard
+        // for example, pitch 50 (D4) yields a candidate array [-1, -1, -1, 0, 5, 10] --> [50 - 64, 50 - 59, 50 - 55, 50 - 50, 50 - 45, 50 - 40], disregard negative entries
+        // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
+        // D4 cannot be played on any other string, so those slots in the array have -1.
+
+        List<Note> list = new ArrayList<>();
+        list.addAll(notes);
+
+        Collections.sort(list, new MyComparator());
+
+        for (int i = 0; i < list.size(); i++)
+        {
+            Note current = list.get(i);
+            System.out.println("pitch: " + current.getPitch());
+        }
+
+        // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
+        // G: [x, x, 0, 5, 10, 15]
+        // E: [x, x, x, 2, 7,  12]
+        // C: [x, x, x, x, 3,  8]
+        // we can iterate through the top array until we find an entry that is not -1. If not, we go to next string. 
+        // When we find a valid fret #, we can assign the first finger (index) to that fret/string. Unless it's 0 (open string).
+        // Then we must go to next string to find next note (can't play 2 notes on the same string). 
+        // When we find the next valid fret #, the # must be greater than or equal to the fret # that the index finger is assigned to.
+        // We will assign the next finger (middle) to that and continue on.
+
+        // how about we keep track of the smallest fret # candidate for each of the notes?
+        // so, in that C major chord example, we iterate through the candidate arrays until G holds 0 on G-string, E holds 2 on D-string,
+        // and C holds 3 on A-string. Each one grabs the first valid fret #. Whichever one is the smallest (that is not zero) gets the index finger.
+        // This ensures that the index finger goes as far left on the fretboard as possible.
+    }
+
+    // takes in a pitch value (for example, 40) as input, outputs a 6 integer array such as [-1, -1, -1, -1, -1, 0]
+    public static int[] candidateArray (int pitch)
+    {
+        // int pitch = 40; // whatever the first pitch is
+
+        int[] candidates = {highEString, bString, gString, dString, aString, lowEString}; // 6 strings in a guitar
+
+        for (int i = 0; i < candidates.length; i++)
+        {
+            candidates[i] = pitch - candidates[i];
+
+            if (candidates[i] < 0 || candidates[i] > (highestPossibleNote - highEString))
+            {
+                candidates[i] = -1; // set it to -1 if it's an invalid fret # (either less than 0, or greater than 20)
+            }
+        }
+
+        return candidates;
+    }
+
+    // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
+    // if yes, it returns true. If not, it returns false
+    public static boolean isTransitionReasonable(LinkedList<Note> first, LinkedList<Note> second)
+    {
+        // put some more code here
+        return true;
+    }
+
+    public static int bestTransposition (Score score)
+    {
+        if (score.getHighestPitch() > highestPossibleNote || score.getLowestPitch() < lowEString)
+        {
+            return 0; // don't bother transposing
+        }
+
+        int maxMoveUp = highestPossibleNote - score.getHighestPitch(); // the most # of semitones the piece can go up.
+        int maxMoveDown = score.getLowestPitch() - lowEString; // the most # of semitones the piece can go down
+
+        int openNotes = countOpenNotes(score); // call on original, unmodified score
+        //System.out.println("i: " + 0 + " openNotes: " + openNotes);
+
+        int maxOpenNotes = openNotes; // not compared to anything else yet, is current max
+        int transposeValue = 0;
+
+        for (int i = 1; i <= maxMoveUp; i++)
+        {
+            Score copy = score;
+            Mod.transpose(copy, i);
+            openNotes = countOpenNotes(copy);
+
+            //System.out.println("i: " + i + " openNotes: " + openNotes);
+
+            if (openNotes > maxOpenNotes)
+            {
+                maxOpenNotes = openNotes;
+                transposeValue = i;
+            }
+
+        }
+
+        for (int i = 1; i <= maxMoveDown; i++)
+        {
+            Score copy = score;
+            Mod.transpose(copy, -i);
+            openNotes = countOpenNotes(copy);
+
+            //System.out.println("i: " + -i + " openNotes: " + openNotes);
+
+            if (openNotes > maxOpenNotes)
+            {
+                maxOpenNotes = openNotes;
+                transposeValue = -i;
+            }
+        }
+
+        return transposeValue;
+    }
+
+    public static int countOpenNotes(Score score)
+    {
+        int openNotes = 0;
+
+        Enumeration enum1 = score.getPartList().elements();
+
+        while(enum1.hasMoreElements())
+        {
+            Part part = (Part) enum1.nextElement();
+            Enumeration enum2 = part.getPhraseList().elements();
+
+            while(enum2.hasMoreElements())
+            {
+                Phrase phrase = (Phrase) enum2.nextElement();
+                Enumeration enum3 = phrase.getNoteList().elements();
+
+                while(enum3.hasMoreElements())
+                {
+                    Note note = (Note) enum3.nextElement();
+
+                    if (isOpenNote(note.getPitch()) == true) 
+                    {
+                        openNotes++;
+                    }
+                }
+            }
+        }
+
+        return openNotes;
+    }
+
+    // given a pitch value, determines if it's one of the open notes on the guitar
+    public static boolean isOpenNote(int pitchValue)
+    {
+        if (pitchValue == lowEString)
+        {
+            return true;
+        }
+        else if (pitchValue == aString)
+        {
+            return true;
+        }
+        else if (pitchValue == dString)
+        {
+            return true;
+        }
+        else if (pitchValue == gString)
+        {
+            return true;
+        }
+        else if (pitchValue == bString)
+        {
+            return true;
+        }
+        else if (pitchValue == highEString)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
@@ -248,187 +424,5 @@ public class Test implements JMC
         }
 
         return newArrangement;
-    }
-
-    // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
-    // If the chord is playable, the function will return a Voicing object. If not, it'll return null.
-    public static boolean isChordPlayable(LinkedList<Note> notes) 
-    {
-        // for each note in the chord:
-        // extract the note's pitch value
-        // find pitch on fretboard
-        // for example, pitch 50 (D4) yields a candidate array [-1, -1, -1, 0, 5, 10] --> [50 - 64, 50 - 59, 50 - 55, 50 - 50, 50 - 45, 50 - 40], disregard negative entries
-        // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
-        // D4 cannot be played on any other string, so those slots in the array have -1.
-
-         Voicing voic = new Voicing(notes);
-
-
-        // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
-        // G: [x, x, 0, 5, 10, 15]
-        // E: [x, x, x, 2, 7,  12]
-        // C: [x, x, x, x, 3,  8]
-        // we can iterate through the top array until we find an entry that is not -1. If not, we go to next string. 
-        // When we find a valid fret #, we can assign the first finger (index) to that fret/string. Unless it's 0 (open string).
-        // Then we must go to next string to find next note (can't play 2 notes on the same string). 
-        // When we find the next valid fret #, the # must be greater than or equal to the fret # that the index finger is assigned to.
-        // We will assign the next finger (middle) to that and continue on.
-
-        // how about we keep track of the smallest fret # candidate for each of the notes?
-        // so, in that C major chord example, we iterate through the candidate arrays until G holds 0 on G-string, E holds 2 on D-string,
-        // and C holds 3 on A-string. Each one grabs the first valid fret #. Whichever one is the smallest (that is not zero) gets the index finger.
-        // This ensures that the index finger goes as far left on the fretboard as possible.
-
-
-
-        return true; // still need to figure out how the Voicing object will be set up/structured.
-    }
-
-    // takes in a pitch value (for example, 40) as input, outputs a 6 integer array such as [-1, -1, -1, -1, -1, 0]
-    public static int[] candidateArray (int pitch)
-    {
-        // int pitch = 40; // whatever the first pitch is
-
-        int[] candidates = {highEString, bString, gString, dString, aString, lowEString}; // 6 strings in a guitar
-
-        for (int i = 0; i < candidates.length; i++)
-        {
-            candidates[i] = pitch - candidates[i];
-
-            if (candidates[i] < 0 || candidates[i] > (highestPossibleNote - highEString))
-            {
-                candidates[i] = -1; // set it to -1 if it's an invalid fret # (either less than 0, or greater than 20)
-            }
-        }
-
-        return candidates;
-    }
-
-    // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
-    // if yes, it returns true. If not, it returns false
-    public static boolean isTransitionReasonable(LinkedList<Note> first, LinkedList<Note> second)
-    {
-        // put some more code here
-        return true;
-    }
-
-    // given two pitch values (for example, 60 and 72), this function determines if the two pitches are the same note but some # of octaves apart.
-    // I don't know where it will come in handy just yet.
-    public static boolean octavesApart (int pitch1, int pitch2)
-    {
-        if ((Math.abs(pitch1 - pitch2) % 12) == 0) // not sure if I need absolute value here
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
-        // alternative approach: take in an array of pitch values as input, take the sum of them, see if the sum mod 12 is 0
-    }
-
-    public static int bestTransposition (Score score)
-    {
-        int maxMoveUp = highestPossibleNote - score.getHighestPitch(); // the most # of semitones the piece can go up.
-        int maxMoveDown = score.getLowestPitch() - lowEString; // the most # of semitones the piece can go down
-        //
-
-        int openNotes = countOpenNotes(score); // call on original, unmodified score
-
-        int maxOpenNotes = openNotes; // not compared to anything else yet, is current max
-        int transposeValue = 0;
-
-        for (int i = 1; i <= maxMoveUp; i++)
-        {
-            Score copy = score;
-            Mod.transpose(copy, i);
-            openNotes = countOpenNotes(copy);
-
-            if (openNotes > maxOpenNotes)
-            {
-                maxOpenNotes = openNotes;
-                transposeValue = i;
-            }
-
-        }
-
-        for (int i = 1; i <= maxMoveDown; i++)
-        {
-            Score copy = score;
-            Mod.transpose(copy, -i);
-            openNotes = countOpenNotes(copy);
-
-            if (openNotes > maxOpenNotes)
-            {
-                maxOpenNotes = openNotes;
-                transposeValue = -i;
-            }
-        }
-
-
-        return transposeValue;
-    }
-
-    public static int countOpenNotes(Score score)
-    {
-        int openNotes = 0;
-
-        Enumeration enum1 = score.getPartList().elements();
-        while(enum1.hasMoreElements())
-        {
-            Part part = (Part) enum1.nextElement();
-            Enumeration enum2 = part.getPhraseList().elements();
-            while(enum2.hasMoreElements())
-            {
-                Phrase phrase = (Phrase) enum2.nextElement();
-                //double startTime = phrase.getStartTime(); 
-                Enumeration enum3 = phrase.getNoteList().elements();
-                while(enum3.hasMoreElements())
-                {
-                    Note note = (Note) enum3.nextElement();
-
-                    if (isOpenNote(note.getPitch())) 
-                    {
-                        openNotes++;
-                    }
-                }
-            }
-        }
-
-        return openNotes;
-    }
-
-    // given a pitch value, determines if it's one of the open notes on the guitar
-    public static boolean isOpenNote(int pitchValue)
-    {
-        if (pitchValue == lowEString)
-        {
-            return true;
-        }
-        if (pitchValue == aString)
-        {
-            return true;
-        }
-        if (pitchValue == dString)
-        {
-            return true;
-        }
-        if (pitchValue == gString)
-        {
-            return true;
-        }
-        if (pitchValue == bString)
-        {
-            return true;
-        }
-        if (pitchValue == highEString)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 }
