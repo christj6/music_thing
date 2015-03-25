@@ -81,11 +81,12 @@ public class Test implements JMC
         int transposeValue = bestTransposition(score);
 
         System.out.println("transpose: " + transposeValue);
+        Mod.quantise(score, transposeValue);
+
+        Write.midi(score, outputFile);
 
 
-
-
-
+        /*
         // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
 
         Double[] times = new Double[3]; // specific value doesn't matter, we reassign it anyway
@@ -105,6 +106,7 @@ public class Test implements JMC
         Score newArrangement = convertStructureToScore(newSequence, times);
 
         Write.midi(newArrangement, outputFile);
+        */
     }
 
     public static Double[] sortedUniqueStartTimes(Score score)
@@ -229,7 +231,7 @@ public class Test implements JMC
         for (int i = 0; i < list.size(); i++)
         {
             Note current = list.get(i);
-            System.out.println("pitch: " + current.getPitch());
+            // System.out.println("pitch: " + current.getPitch());
         }
 
         // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
@@ -287,7 +289,7 @@ public class Test implements JMC
         int maxMoveDown = score.getLowestPitch() - lowEString; // the most # of semitones the piece can go down
 
         int openNotes = countOpenNotes(score); // call on original, unmodified score
-        //System.out.println("i: " + 0 + " openNotes: " + openNotes);
+        System.out.println("i: " + 0 + " openNotes: " + openNotes);
 
         int maxOpenNotes = openNotes; // not compared to anything else yet, is current max
         int transposeValue = 0;
@@ -298,7 +300,7 @@ public class Test implements JMC
             Mod.transpose(copy, i);
             openNotes = countOpenNotes(copy);
 
-            //System.out.println("i: " + i + " openNotes: " + openNotes);
+            System.out.println("i: " + i + " openNotes: " + openNotes);
 
             if (openNotes > maxOpenNotes)
             {
@@ -314,7 +316,7 @@ public class Test implements JMC
             Mod.transpose(copy, -i);
             openNotes = countOpenNotes(copy);
 
-            //System.out.println("i: " + -i + " openNotes: " + openNotes);
+            System.out.println("i: " + -i + " openNotes: " + openNotes);
 
             if (openNotes > maxOpenNotes)
             {
