@@ -169,10 +169,12 @@ public class Test implements JMC
     public LinkedList<Note>[] processNotes (LinkedList<Note>[] structure, Double[] times)
     {
         // do stuff here
+        for (int i = 0; i < structure.length; i++)
+        {
+            assignFingers(structure[i], times[i]); 
+        }
 
-        //System.out.println();
-
-        assignFingers(structure[0], times[0]); // put a loop and and i here
+        // assignFingers(structure[0], times[0]); // put a loop and and i here
 
         // create an array of lists of Voicing objects
         // for each voicing object, find the best-scoring next voicing to go to
@@ -184,13 +186,6 @@ public class Test implements JMC
     // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
     public void assignFingers(LinkedList<Note> notes, Double start) 
     {
-        // for each note in the chord:
-        // extract the note's pitch value
-        // find pitch on fretboard
-        // for example, pitch 50 (D4) yields a candidate array [-1, -1, -1, 0, 5, 10] --> [50 - 64, 50 - 59, 50 - 55, 50 - 50, 50 - 45, 50 - 40], disregard negative entries
-        // since D4 can be played in 3 ways: play D-string open, play A-string 5th fret, or play E-string 10th fret.
-        // D4 cannot be played on any other string, so those slots in the array have -1.
-
         List<Note> list = new ArrayList<>();
         list.addAll(notes);
 
@@ -200,50 +195,38 @@ public class Test implements JMC
         {
             Note current = list.get(i);
             // System.out.println("pitch: " + current.getPitch());
-        }
+            List<Tuple> positions = retrievePositionArray(current.getPitch());
 
-        // for a 3-note chord (for example, C4, E4, G4), the candidate arrays would look like:
-        // G: [x, x, 0, 5, 10, 15]
-        // E: [x, x, x, 2, 7,  12]
-        // C: [x, x, x, x, 3,  8]
-        // we can iterate through the top array until we find an entry that is not -1. If not, we go to next string. 
-        // When we find a valid fret #, we can assign the first finger (index) to that fret/string. Unless it's 0 (open string).
-        // Then we must go to next string to find next note (can't play 2 notes on the same string). 
-        // When we find the next valid fret #, the # must be greater than or equal to the fret # that the index finger is assigned to.
-        // We will assign the next finger (middle) to that and continue on.
-
-        // how about we keep track of the smallest fret # candidate for each of the notes?
-        // so, in that C major chord example, we iterate through the candidate arrays until G holds 0 on G-string, E holds 2 on D-string,
-        // and C holds 3 on A-string. Each one grabs the first valid fret #. Whichever one is the smallest (that is not zero) gets the index finger.
-        // This ensures that the index finger goes as far left on the fretboard as possible.
-    }
-
-    // takes in a pitch value (for example, 40) as input, outputs a 6 integer array such as [-1, -1, -1, -1, -1, 0]
-    public int[] candidateArray (int pitch)
-    {
-        // int pitch = 40; // whatever the first pitch is
-
-        int[] candidates = {highEString, bString, gString, dString, aString, lowEString}; // 6 strings in a guitar
-
-        for (int i = 0; i < candidates.length; i++)
-        {
-            candidates[i] = pitch - candidates[i];
-
-            if (candidates[i] < 0 || candidates[i] > (highestPossibleNote - highEString))
+            System.out.println("pitch " + current.getPitch());
+            for (int j = 0; j < positions.size(); j++)
             {
-                candidates[i] = -1; // set it to -1 if it's an invalid fret # (either less than 0, or greater than 20)
+                System.out.println("String " + positions.get(j).getStringNum() + ", fret " + positions.get(j).getFretNum());
             }
         }
 
-        return candidates;
+        // return null;
     }
 
-    // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
-    // if yes, it returns true. If not, it returns false
-    public boolean isTransitionReasonable(LinkedList<Note> first, LinkedList<Note> second)
+    // returns list of possible string/fret combos to play a given pitch
+    public List<Tuple> retrievePositionArray (int pitch)
     {
-        // put some more code here
-        return true;
+        List<Tuple> positions = new ArrayList<Tuple>();
+
+        for (int i = 1; i <= 6; i++)
+        {
+            for (int j = 0; j < (highestPossibleNote - highEString); j++)
+            {
+                Tuple position = new Tuple(i, j);
+
+                if (position.getPitch(i, j) == pitch)
+                {
+                    positions.add(position);
+                }
+
+            }
+        }
+
+        return positions;
     }
 
     public int bestTransposition (Score score)
