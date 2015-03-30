@@ -1,21 +1,5 @@
 
 
-// Jack Christiansen
-
-// using Windows cmd:
-// compile with
-// javac -cp C:\Users\Jack\jmusic\jmusic.jar *.java
-
-// run with
-// java -cp C:\Users\Jack\jmusic\jmusic.jar;. Test file.mid output.mid
-
-// to add to the git:
-// delete the folder, git clone https://github.com/christj6/music_thing
-// cd music_thing
-// git add .
-// git commit -m "some message"
-// git push origin master
-
 import jm.JMC;
 import jm.music.data.*;
 import jm.music.tools.*;
@@ -39,58 +23,40 @@ public class Test implements JMC
 
     public static final int highestPossibleNote = 84; // assumes the guitar has 20 frets
 
+    // score
+    private Score score = new Score();
+    private Set<Double> uniqueStartTimes = new HashSet<Double>();
+    private Double[] times;
+    private LinkedList<Note>[] chordSequence;
+
     // fingers
     // left hand (fretboard)
-    int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
-    Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
+    private int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
+    private Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
 
     // right hand (strings)
-    int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
+    private int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
 
-    public static void main(String[] args)
+    // sets up everything 
+    public Test(String inputFile, String outputFile)
     {
-        String inputFile = args[0];
-        String outputFile = args[1];
-        System.out.println("Importing " + inputFile);
-
-        Score score = new Score();
+        // System.out.println("Importing " + inputFile);
 
         Read.midi(score, inputFile); // check if args[0] is a valid midi file before you try reading it
 
-        // Mod.quantise(score, 4); // institutes barlines everywhere -- seems to work better than the Tools -> Quantize Timing
-        // 0.25 corresponds with quarter notes
+        // int transposeValue = bestTransposition(score);
 
-        //for each chord in the midi file, extract the chord:
+        // System.out.println("transpose: " + transposeValue);
+        // Mod.quantise(score, transposeValue);
 
-        // for each note in the chord, map the note to a left-hand finger (1 = index, 2 = middle, 3, 4) 
-        // and a right-hand finger (p = thumb, i = index, m, a)
-        // and also a location on the fretboard (for example, a4 can be played on fret 0 of the a-string or fret 5 of the e-string)
+        // Write.midi(score, outputFile);
+
+
         
-        // for standard tuning guitar, the lowest pitch is 40 (e3), and the highest pitch is 84 (c7)
-        // idea: transpose the song up/down in such a way to allow in the most notes with minimal truncation (might not work)
-        if (score.getHighestPitch() > highestPossibleNote)
-        {
-            System.out.println("Alert: some note(s) too high for standard-tuned guitar.");
-        }
-
-        if (score.getLowestPitch() < lowEString)
-        {
-            System.out.println("Alert: some note(s) too low for standard-tuned guitar.");
-        }
-
-        int transposeValue = bestTransposition(score);
-
-        System.out.println("transpose: " + transposeValue);
-        Mod.quantise(score, transposeValue);
-
-        Write.midi(score, outputFile);
-
-
-        /*
         // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
 
         Double[] times = new Double[3]; // specific value doesn't matter, we reassign it anyway
-        times = sortedUniqueStartTimes(score);
+        times = sortedUniqueStartTimes();
 
         LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
         chordSequence = chordSequenceArray(score, times);
@@ -103,15 +69,13 @@ public class Test implements JMC
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
         // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
 
-        Score newArrangement = convertStructureToScore(newSequence, times);
-
-        Write.midi(newArrangement, outputFile);
-        */
+        Write.midi(convertStructureToScore(newSequence, times), outputFile);
+        
     }
 
-    public static Double[] sortedUniqueStartTimes(Score score)
+    public Double[] sortedUniqueStartTimes()
     {
-        Set<Double> uniqueStartTimes = new HashSet<Double>();
+        // Set<Double> uniqueStartTimes = new HashSet<Double>();
 
         // this section adapted from http://explodingart.com/jmusic/applications/Midi2text.java
         Enumeration enum1 = score.getPartList().elements(); // changed "enum" to "enum1" to avoid the keyword error
@@ -152,7 +116,7 @@ public class Test implements JMC
     }
 
     // idea: go through each note and make sure the duration is equal to times[i+1] - times[i]
-    public static LinkedList<Note>[] chordSequenceArray(Score score, Double[] times)
+    public LinkedList<Note>[] chordSequenceArray(Score score, Double[] times)
     {
         LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
 
@@ -202,7 +166,7 @@ public class Test implements JMC
     // process transitions sequentially, see if a human can move their hand that quickly
     // if not, do something else?
     // return the modified structure
-    public static LinkedList<Note>[] processNotes (LinkedList<Note>[] structure, Double[] times)
+    public LinkedList<Note>[] processNotes (LinkedList<Note>[] structure, Double[] times)
     {
         // do stuff here
 
@@ -210,11 +174,15 @@ public class Test implements JMC
 
         assignFingers(structure[0], times[0]); // put a loop and and i here
 
+        // create an array of lists of Voicing objects
+        // for each voicing object, find the best-scoring next voicing to go to
+        // do this for each spot in the array
+
         return structure;
     }
 
     // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
-    public static void assignFingers(LinkedList<Note> notes, Double start) 
+    public void assignFingers(LinkedList<Note> notes, Double start) 
     {
         // for each note in the chord:
         // extract the note's pitch value
@@ -251,7 +219,7 @@ public class Test implements JMC
     }
 
     // takes in a pitch value (for example, 40) as input, outputs a 6 integer array such as [-1, -1, -1, -1, -1, 0]
-    public static int[] candidateArray (int pitch)
+    public int[] candidateArray (int pitch)
     {
         // int pitch = 40; // whatever the first pitch is
 
@@ -272,13 +240,13 @@ public class Test implements JMC
 
     // takes in two different chord voicings as input, determines if it's reasonable for the guitarist to move their hands from position A to position B
     // if yes, it returns true. If not, it returns false
-    public static boolean isTransitionReasonable(LinkedList<Note> first, LinkedList<Note> second)
+    public boolean isTransitionReasonable(LinkedList<Note> first, LinkedList<Note> second)
     {
         // put some more code here
         return true;
     }
 
-    public static int bestTransposition (Score score)
+    public int bestTransposition (Score score)
     {
         if (score.getHighestPitch() > highestPossibleNote || score.getLowestPitch() < lowEString)
         {
@@ -289,7 +257,7 @@ public class Test implements JMC
         int maxMoveDown = score.getLowestPitch() - lowEString; // the most # of semitones the piece can go down
 
         int openNotes = countOpenNotes(score); // call on original, unmodified score
-        System.out.println("i: " + 0 + " openNotes: " + openNotes);
+        // System.out.println("i: " + 0 + " openNotes: " + openNotes);
 
         int maxOpenNotes = openNotes; // not compared to anything else yet, is current max
         int transposeValue = 0;
@@ -300,7 +268,7 @@ public class Test implements JMC
             Mod.transpose(copy, i);
             openNotes = countOpenNotes(copy);
 
-            System.out.println("i: " + i + " openNotes: " + openNotes);
+            // System.out.println("i: " + i + " openNotes: " + openNotes);
 
             if (openNotes > maxOpenNotes)
             {
@@ -316,7 +284,7 @@ public class Test implements JMC
             Mod.transpose(copy, -i);
             openNotes = countOpenNotes(copy);
 
-            System.out.println("i: " + -i + " openNotes: " + openNotes);
+            // System.out.println("i: " + -i + " openNotes: " + openNotes);
 
             if (openNotes > maxOpenNotes)
             {
@@ -328,7 +296,8 @@ public class Test implements JMC
         return transposeValue;
     }
 
-    public static int countOpenNotes(Score score)
+    // don't just check for any open notes, check for notes that are sustained for an extended period of time
+    public int countOpenNotes(Score score)
     {
         int openNotes = 0;
 
@@ -350,6 +319,7 @@ public class Test implements JMC
 
                     if (isOpenNote(note.getPitch()) == true) 
                     {
+                        // check the duration of the note, relative to the other notes (long sustaining bass note?)
                         openNotes++;
                     }
                 }
@@ -360,7 +330,7 @@ public class Test implements JMC
     }
 
     // given a pitch value, determines if it's one of the open notes on the guitar
-    public static boolean isOpenNote(int pitchValue)
+    public boolean isOpenNote(int pitchValue)
     {
         if (pitchValue == lowEString)
         {
@@ -393,7 +363,7 @@ public class Test implements JMC
     }
 
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
-    public static Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
+    public Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
     {
         int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because guitars usually have 6 strings
 
