@@ -33,8 +33,8 @@ public class Test implements JMC
 
     // fingers
     // left hand (fretboard)
-    private int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
-    private Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
+    // private int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
+    // private Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
 
     // right hand (strings)
     private int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
@@ -52,29 +52,18 @@ public class Test implements JMC
         // Mod.quantise(score, transposeValue);
 
         // Write.midi(score, outputFile);
-
-
-        
-        // idea: maximize the occurrences of open strings -- transpose the piece up/down by x semitones until the max # of notes occur on E, A, D, G, b, e strings
-
         
         this.times = sortedUniqueStartTimes();
 
         this.chordSequence = chordSequenceArray();
 
         List<LinkedList<Note>> newSequence = processNotes(chordSequence, times);
-        
-        /*
-
-        // when we're done messing with the notes, we will probably iterate through all the notes in the chordSequence array,
-        // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
-        // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
-
-        
-        */
 
         Write.midi(convertStructureToScore(newSequence, times), outputFile);
-        
+
+        // testing chord shape tester
+        Tuple[] cMajorChordOpen = new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)}; // index is on string 2, fret 1; middle on string 4, fret 2; ring on string 5, fret 3; pinkie unassigned
+        System.out.println("testing... " + chordTester(cMajorChordOpen));
     }
 
     public List<Double> sortedUniqueStartTimes()
@@ -186,6 +175,7 @@ public class Test implements JMC
         }
 
         System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
+        // based on the outcome of that function call, mess with structure??
 
         // create an array of lists of Voicing objects
         // for each voicing object, find the best-scoring next voicing to go to
@@ -195,7 +185,7 @@ public class Test implements JMC
     }
 
 
-    // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
+    // recursive
     public boolean assignFingers(Tuple[] lhFingers, Double[] expirations, int currentIndex) 
     {
         System.out.println("inside assignFingers ");
@@ -235,6 +225,28 @@ public class Test implements JMC
         }
 
         // return null;
+    }
+
+    // takes in a set of Tuples representing playings of notes, 
+    public boolean chordTester (Tuple[] positions)
+    {
+        // check that index starts at left, every finger goes at same fret or after
+        for (int i = 0; i < positions.length-1; i++)
+        {
+            int currentFret = positions[i].getFretNum();
+            int nextFret = positions[i+1].getFretNum();
+
+            System.out.println(currentFret + " vs " + nextFret);
+
+            if (nextFret < currentFret)
+            {
+                return false; // remember to watch for open strings (0) and unassigned fingers (-1)
+            }
+        }
+
+
+
+        return true;
     }
 
     // returns list of possible string/fret combos to play a given pitch
