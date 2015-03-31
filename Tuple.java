@@ -1,7 +1,7 @@
 
 // Tuple class for left hand finger position on guitar
 
-public class Tuple 
+public class Tuple implements Comparable<Tuple>
 {
 	private int stringNum;
 	private int fretNum;
@@ -18,6 +18,11 @@ public class Tuple
 
     public static final int highestPossibleNote = 84;
 
+    public Tuple()
+    {
+    	// empty constructor
+    }
+
 	public Tuple(int stringNum, int fretNum) 
 	{
 		this.stringNum = stringNum;
@@ -32,6 +37,16 @@ public class Tuple
 	public int getFretNum()
 	{
 		return fretNum;
+	}
+
+	public void getStringNum(int stringNum)
+	{
+		this.stringNum = stringNum;
+	}
+
+	public void getFretNum(int fretNum)
+	{
+		this.fretNum = fretNum;
 	}
 
 	// takes in string and fret number, returns pitch value
@@ -55,4 +70,17 @@ public class Tuple
 				return -1;
 		}
 	}
+
+	public int compareTo(Tuple other) 
+    {
+        if (this.getFretNum() > other.getFretNum()) 
+        {
+            return 1;
+        } 
+        else if (this.getFretNum() < other.getFretNum()) 
+        {
+            return -1;
+        }
+        return 0;
+    }
 }
