@@ -26,8 +26,9 @@ public class Test implements JMC
     // score
     private Score score = new Score();
     private Set<Double> uniqueStartTimes = new HashSet<Double>();
-    private Double[] times;
-    private LinkedList<Note>[] chordSequence;
+     private Double[] times;
+     private LinkedList<Note>[] chordSequence;
+    //private List<LinkedList<Note>> chordSequence = new ArrayList<LinkedList<Note>>();
 
     // fingers
     // left hand (fretboard)
@@ -168,13 +169,19 @@ public class Test implements JMC
     // return the modified structure
     public LinkedList<Note>[] processNotes (LinkedList<Note>[] structure, Double[] times)
     {
-        // do stuff here
-        for (int i = 0; i < structure.length; i++)
+        Tuple[] emptyTuples = new Tuple[4];
+        for (int i = 0; i < emptyTuples.length; i++)
         {
-            assignFingers(structure[i], times[i]); 
+            emptyTuples[i] = new Tuple();
         }
 
-        // assignFingers(structure[0], times[0]); // put a loop and and i here
+        Double[] negativeEndTimes = new Double[4];
+        for (int i = 0; i < negativeEndTimes.length; i++)
+        {
+            negativeEndTimes[i] = -1.0;
+        }
+
+        // System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
 
         // create an array of lists of Voicing objects
         // for each voicing object, find the best-scoring next voicing to go to
@@ -184,10 +191,13 @@ public class Test implements JMC
     }
 
     // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
-    public void assignFingers(LinkedList<Note> notes, Double start) 
+    public boolean assignFingers(Tuple[] lhFingers, Double[] expirations, int currentIndex) 
     {
+        System.out.println("inside assignFingers ");
+
         List<Note> list = new ArrayList<>();
-        list.addAll(notes);
+
+        list.addAll(chordSequence[currentIndex]);
 
         Collections.sort(list, new MyComparator());
 
@@ -197,12 +207,27 @@ public class Test implements JMC
             // System.out.println("pitch: " + current.getPitch());
             List<Tuple> positions = retrievePositionArray(current.getPitch());
 
+            /*
             System.out.println("pitch " + current.getPitch());
             for (int j = 0; j < positions.size(); j++)
             {
                 System.out.println("String " + positions.get(j).getStringNum() + ", fret " + positions.get(j).getFretNum());
+
+                // find leftmost position on fret (lowest fret #)
             }
+            */
         }
+
+        if (currentIndex < chordSequence.length - 1)
+        {
+            return assignFingers(lhFingers, expirations, currentIndex + 1);
+        }
+        else
+        {
+            return true;
+        }
+
+
 
         // return null;
     }
@@ -214,7 +239,7 @@ public class Test implements JMC
 
         for (int i = 1; i <= 6; i++)
         {
-            for (int j = 0; j < (highestPossibleNote - highEString); j++)
+            for (int j = 0; j <= (highestPossibleNote - highEString); j++)
             {
                 Tuple position = new Tuple(i, j);
 
@@ -225,6 +250,8 @@ public class Test implements JMC
 
             }
         }
+
+        Collections.sort(positions);
 
         return positions;
     }
