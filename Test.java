@@ -60,32 +60,20 @@ public class Test implements JMC
         
         this.times = sortedUniqueStartTimes();
 
-        for (int i = 0; i < times.size(); i++)
-        {
-            System.out.println(times.get(i));
-        }
-
         this.chordSequence = chordSequenceArray();
 
-        for (int i = 0; i < chordSequence.size(); i++)
-        {
-            System.out.println(chordSequence.get(i));
-        }
+        List<LinkedList<Note>> newSequence = processNotes(chordSequence, times);
         
         /*
-        LinkedList<Note>[] chordSequence = new LinkedList[times.length]; // this uses unsafe/unchecked operations, apparently
-        chordSequence = chordSequenceArray(score, times);
-
-        // do something to process the notes here (mess with chordSequence)
-        LinkedList<Note>[] newSequence = new LinkedList[times.length];
-        newSequence = processNotes(chordSequence, times);
 
         // when we're done messing with the notes, we will probably iterate through all the notes in the chordSequence array,
         // and for each chord, we'll create a new Phrase with the right start time and add the notes to that phrase.
         // All the phrases will be added to a Part, which will then be added to a new score. Render a midi file from that.
 
-        Write.midi(convertStructureToScore(newSequence, times), outputFile);
+        
         */
+
+        Write.midi(convertStructureToScore(newSequence, times), outputFile);
         
     }
 
@@ -178,13 +166,12 @@ public class Test implements JMC
     }
     
 
-    /*
     // process each chord to see if a human can play it
     // if not, modify the chord in some way?
     // process transitions sequentially, see if a human can move their hand that quickly
     // if not, do something else?
     // return the modified structure
-    public LinkedList<Note>[] processNotes (LinkedList<Note>[] structure, Double[] times)
+    public List<LinkedList<Note>> processNotes (List<LinkedList<Note>> structure, List<Double> times)
     {
         Tuple[] emptyTuples = new Tuple[4];
         for (int i = 0; i < emptyTuples.length; i++)
@@ -198,7 +185,7 @@ public class Test implements JMC
             negativeEndTimes[i] = -1.0;
         }
 
-        // System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
+        System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
 
         // create an array of lists of Voicing objects
         // for each voicing object, find the best-scoring next voicing to go to
@@ -206,18 +193,16 @@ public class Test implements JMC
 
         return structure;
     }
-    */
 
 
     // takes in a note/chord (1-n # of notes) as input, determines if it's playable or not according to the rules
-    /*
     public boolean assignFingers(Tuple[] lhFingers, Double[] expirations, int currentIndex) 
     {
         System.out.println("inside assignFingers ");
 
         List<Note> list = new ArrayList<>();
 
-        list.addAll(chordSequence[currentIndex]);
+        list.addAll(chordSequence.get(currentIndex));
 
         Collections.sort(list, new MyComparator());
 
@@ -228,7 +213,7 @@ public class Test implements JMC
             // System.out.println("pitch: " + current.getPitch());
             List<Tuple> positions = retrievePositionArray(current.getPitch());
 
-            
+            /*
             System.out.println("pitch " + current.getPitch());
             for (int j = 0; j < positions.size(); j++)
             {
@@ -236,10 +221,11 @@ public class Test implements JMC
 
                 // find leftmost position on fret (lowest fret #)
             }
+            */
             
         }
 
-        if (currentIndex < chordSequence.length - 1)
+        if (currentIndex < chordSequence.size() - 1)
         {
             return assignFingers(lhFingers, expirations, currentIndex + 1);
         }
@@ -248,11 +234,8 @@ public class Test implements JMC
             return true;
         }
 
-
-
         // return null;
     }
-    */
 
     // returns list of possible string/fret combos to play a given pitch
     public List<Tuple> retrievePositionArray (int pitch)
@@ -395,8 +378,7 @@ public class Test implements JMC
     }
 
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
-    /*
-    public Score convertStructureToScore(LinkedList<Note>[] structure, Double[] times)
+    public Score convertStructureToScore(List<LinkedList<Note>> structure, List<Double> times)
     {
         int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because guitars usually have 6 strings
 
@@ -406,13 +388,13 @@ public class Test implements JMC
         {
             Part part = new Part();
 
-            for (int j = 0; j < structure.length; j++)
+            for (int j = 0; j < structure.size(); j++)
             {
-                if (structure[j].peek() != null)
+                if (structure.get(j).peek() != null)
                 {
-                    Phrase phrase = new Phrase(times[j]);
+                    Phrase phrase = new Phrase(times.get(j));
 
-                    Note note = structure[j].remove(); // take one off the top of each linked list
+                    Note note = structure.get(j).remove(); // take one off the top of each linked list
 
                     // should remove this if statement, move it to the processNotes function.
                     // it's not the responsibility of the convert function to determine which notes should or should not be played
@@ -430,5 +412,5 @@ public class Test implements JMC
 
         return newArrangement;
     }
-    */
+
 }
