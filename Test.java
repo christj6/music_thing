@@ -230,17 +230,45 @@ public class Test implements JMC
     // takes in a set of Tuples representing playings of notes, 
     public boolean chordTester (Tuple[] positions)
     {
-        // check that index starts at left, every finger goes at same fret or after
+        // first round of checks
         for (int i = 0; i < positions.length-1; i++)
         {
             int currentFret = positions[i].getFretNum();
             int nextFret = positions[i+1].getFretNum();
 
-            System.out.println(currentFret + " vs " + nextFret);
+            // System.out.println(currentFret + " vs " + nextFret);
 
-            if (nextFret < currentFret)
+            if (currentFret > 0 && nextFret > 0) // watch for open strings (0) and unassigned fingers (-1)
             {
-                return false; // remember to watch for open strings (0) and unassigned fingers (-1)
+                // check that index is leftmost, and subsequent fingers are at or past their predecessor
+                if (nextFret < currentFret)
+                {
+                    return false; 
+                }
+
+                // check that gaps between adjacent fingers are not too big
+                if ((nextFret - currentFret) > 2)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // check that each string gets only one note each
+        int[] noteCount = new int[] {0, 0, 0, 0, 0, 0};
+
+        for (int i = 0; i < positions.length; i++)
+        {
+            int currentString = positions[i].getStringNum(); // stringNum goes from 1 to 6, unless unset, in which case it's -1 or 0
+
+            if (currentString >= 1 && currentString <= 6)
+            {
+                noteCount[currentString-1]++;
+
+                if (noteCount[currentString-1] > 1)
+                {
+                    return false;
+                }
             }
         }
 
