@@ -25,7 +25,7 @@ public class Tuple implements Comparable<Tuple>
 
 	public Tuple(int stringNum, int fretNum) 
 	{
-		this.stringNum = stringNum;
+		this.stringNum = stringNum; // maybe have something where if the string number is something weird, that means the position is part of a barre chord
 		this.fretNum = fretNum;
 	}
 
@@ -39,12 +39,12 @@ public class Tuple implements Comparable<Tuple>
 		return fretNum;
 	}
 
-	public void getStringNum(int stringNum)
+	public void setStringNum(int stringNum)
 	{
 		this.stringNum = stringNum;
 	}
 
-	public void getFretNum(int fretNum)
+	public void setFretNum(int fretNum)
 	{
 		this.fretNum = fretNum;
 	}
