@@ -174,7 +174,10 @@ public class Test implements JMC
             negativeEndTimes[i] = -1.0;
         }
 
-        System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
+        // System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
+
+
+
         // based on the outcome of that function call, mess with structure??
 
         // create an array of lists of Voicing objects
@@ -188,31 +191,40 @@ public class Test implements JMC
     // recursive
     public boolean assignFingers(Tuple[] lhFingers, Double[] expirations, int currentIndex) 
     {
-        System.out.println("inside assignFingers ");
+        // System.out.println("inside assignFingers ");
 
         List<Note> list = new ArrayList<>();
+        List<Tuple>[] possiblePositions = new ArrayList[6]; // 6 long, for 6 strings
 
         list.addAll(chordSequence.get(currentIndex));
 
         Collections.sort(list, new MyComparator());
 
-
+        // populate the 6 arraylists with positions based on which string they occupy
         for (int i = 0; i < list.size(); i++)
         {
             Note current = list.get(i);
             // System.out.println("pitch: " + current.getPitch());
             List<Tuple> positions = retrievePositionArray(current.getPitch());
 
-            /*
-            System.out.println("pitch " + current.getPitch());
             for (int j = 0; j < positions.size(); j++)
             {
-                System.out.println("String " + positions.get(j).getStringNum() + ", fret " + positions.get(j).getFretNum());
+                int stringNum = positions.get(j).getStringNum();
 
-                // find leftmost position on fret (lowest fret #)
+                if (stringNum > 0 && stringNum <= 6)
+                {
+                    possiblePositions[stringNum].add(positions.get(j));
+                }
             }
-            */
-            
+        }
+
+        for (int i = 0; i < lhFingers.length; i++)
+        {
+            int stringNum = lhFingers[i].getStringNum();
+            int fretNum = lhFingers[i].getStringNum();
+            Double expiration = expirations[i];
+
+            // can we assign this finger?
         }
 
         if (currentIndex < chordSequence.size() - 1)
@@ -227,9 +239,10 @@ public class Test implements JMC
         // return null;
     }
 
-    // takes in a set of Tuples representing playings of notes, 
+    // takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
     public boolean chordTester (Tuple[] positions)
     {
+
         // first round of checks
         for (int i = 0; i < positions.length-1; i++)
         {
@@ -247,7 +260,7 @@ public class Test implements JMC
                 }
 
                 // check that gaps between adjacent fingers are not too big
-                if ((nextFret - currentFret) > 2)
+                if ((nextFret - currentFret) > 2) // if the guitarist's hand is huge, consider making this number bigger
                 {
                     return false;
                 }
