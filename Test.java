@@ -62,8 +62,10 @@ public class Test implements JMC
         Write.midi(convertStructureToScore(newSequence, times), outputFile);
 
         // testing chord shape tester
-        Tuple[] cMajorChordOpen = new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)}; // index is on string 2, fret 1; middle on string 4, fret 2; ring on string 5, fret 3; pinkie unassigned
-        System.out.println("testing... " + chordTester(cMajorChordOpen));
+        // Voicing cMajorChordOpen = new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)}; // index is on string 2, fret 1; middle on string 4, fret 2; ring on string 5, fret 3; pinkie unassigned
+        Voicing cMajorChordOpen = new Voicing(new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)});
+        System.out.println(cMajorChordOpen);
+        System.out.println("testing... " + cMajorChordOpen.chordTester());
     }
 
     public List<Double> sortedUniqueStartTimes()
@@ -162,6 +164,7 @@ public class Test implements JMC
     // return the modified structure
     public List<LinkedList<Note>> processNotes (List<LinkedList<Note>> structure, List<Double> times)
     {
+        /*
         Tuple[] emptyTuples = new Tuple[4];
         for (int i = 0; i < emptyTuples.length; i++)
         {
@@ -173,6 +176,10 @@ public class Test implements JMC
         {
             negativeEndTimes[i] = -1.0;
         }
+        */
+
+        Voicing voic = new Voicing();
+        // System.out.println(voic);
 
         // System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
 
@@ -188,11 +195,9 @@ public class Test implements JMC
     }
 
 
-    // recursive
-    public boolean assignFingers(Tuple[] lhFingers, Double[] expirations, int currentIndex) 
+    public void assignFingers() 
     {
-        // System.out.println("inside assignFingers ");
-
+        /*
         List<Note> list = new ArrayList<>();
         List<Tuple>[] possiblePositions = new ArrayList[6]; // 6 long, for 6 strings
 
@@ -213,82 +218,15 @@ public class Test implements JMC
 
                 if (stringNum > 0 && stringNum <= 6)
                 {
-                    possiblePositions[stringNum].add(positions.get(j));
+                    possiblePositions[stringNum-1].add(positions.get(j));
                 }
             }
         }
+        */
 
-        for (int i = 0; i < lhFingers.length; i++)
-        {
-            int stringNum = lhFingers[i].getStringNum();
-            int fretNum = lhFingers[i].getStringNum();
-            Double expiration = expirations[i];
-
-            // can we assign this finger?
-        }
-
-        if (currentIndex < chordSequence.size() - 1)
-        {
-            return assignFingers(lhFingers, expirations, currentIndex + 1);
-        }
-        else
-        {
-            return true;
-        }
-
-        // return null;
     }
 
-    // takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
-    public boolean chordTester (Tuple[] positions)
-    {
-
-        // first round of checks
-        for (int i = 0; i < positions.length-1; i++)
-        {
-            int currentFret = positions[i].getFretNum();
-            int nextFret = positions[i+1].getFretNum();
-
-            // System.out.println(currentFret + " vs " + nextFret);
-
-            if (currentFret > 0 && nextFret > 0) // watch for open strings (0) and unassigned fingers (-1)
-            {
-                // check that index is leftmost, and subsequent fingers are at or past their predecessor
-                if (nextFret < currentFret)
-                {
-                    return false; 
-                }
-
-                // check that gaps between adjacent fingers are not too big
-                if ((nextFret - currentFret) > 2) // if the guitarist's hand is huge, consider making this number bigger
-                {
-                    return false;
-                }
-            }
-        }
-
-        // check that each string gets only one note each
-        int[] noteCount = new int[] {0, 0, 0, 0, 0, 0};
-
-        for (int i = 0; i < positions.length; i++)
-        {
-            int currentString = positions[i].getStringNum(); // stringNum goes from 1 to 6, unless unset, in which case it's -1 or 0
-
-            if (currentString >= 1 && currentString <= 6)
-            {
-                noteCount[currentString-1]++;
-
-                if (noteCount[currentString-1] > 1)
-                {
-                    return false;
-                }
-            }
-        }
-
-
-
-        return true;
-    }
+    
 
     // returns list of possible string/fret combos to play a given pitch
     public List<Tuple> retrievePositionArray (int pitch)
