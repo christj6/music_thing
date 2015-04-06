@@ -63,9 +63,9 @@ public class Test implements JMC
 
         // testing chord shape tester
         // Voicing cMajorChordOpen = new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)}; // index is on string 2, fret 1; middle on string 4, fret 2; ring on string 5, fret 3; pinkie unassigned
-        Voicing cMajorChordOpen = new Voicing(new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)});
-        System.out.println(cMajorChordOpen);
-        System.out.println("testing... " + cMajorChordOpen.chordTester());
+        // Voicing cMajorChordOpen = new Voicing(new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)});
+        // System.out.println(cMajorChordOpen);
+        // System.out.println("testing... " + cMajorChordOpen.chordTester());
     }
 
     public List<Double> sortedUniqueStartTimes()
@@ -164,28 +164,9 @@ public class Test implements JMC
     // return the modified structure
     public List<LinkedList<Note>> processNotes (List<LinkedList<Note>> structure, List<Double> times)
     {
-        /*
-        Tuple[] emptyTuples = new Tuple[4];
-        for (int i = 0; i < emptyTuples.length; i++)
-        {
-            emptyTuples[i] = new Tuple();
-        }
-
-        Double[] negativeEndTimes = new Double[4];
-        for (int i = 0; i < negativeEndTimes.length; i++)
-        {
-            negativeEndTimes[i] = -1.0;
-        }
-        */
-
-        Voicing voic = new Voicing();
-        // System.out.println(voic);
-
-        // System.out.println(assignFingers(emptyTuples, negativeEndTimes, 0));
-
-
 
         // based on the outcome of that function call, mess with structure??
+        List<Voicing> testing = retrieveVoicingArray(structure.get(0));
 
         // create an array of lists of Voicing objects
         // for each voicing object, find the best-scoring next voicing to go to
@@ -194,39 +175,44 @@ public class Test implements JMC
         return structure;
     }
 
-
-    public void assignFingers() 
+    // given a chord/list of notes, returns all possible voicings of that chord in an arraylist
+    public List<Voicing> retrieveVoicingArray(LinkedList<Note> chord)
     {
-        /*
-        List<Note> list = new ArrayList<>();
-        List<Tuple>[] possiblePositions = new ArrayList[6]; // 6 long, for 6 strings
+        List<Voicing> voicings = new ArrayList<Voicing>();
 
-        list.addAll(chordSequence.get(currentIndex));
-
-        Collections.sort(list, new MyComparator());
-
-        // populate the 6 arraylists with positions based on which string they occupy
-        for (int i = 0; i < list.size(); i++)
+        List<Tuple>[] strings = new ArrayList[6];
+        for (int i = 0; i < 6; i++)
         {
-            Note current = list.get(i);
-            // System.out.println("pitch: " + current.getPitch());
-            List<Tuple> positions = retrievePositionArray(current.getPitch());
+            strings[i] = new ArrayList<Tuple>();
+        }
 
-            for (int j = 0; j < positions.size(); j++)
+        for (int i = 0; i < chord.size(); i++)
+        {
+            Note note = chord.get(i);
+
+            int pitch = note.getPitch();
+
+            List<Tuple> temp = retrievePositionArray(pitch);
+
+            for (int j = 0; j < temp.size(); j++)
             {
-                int stringNum = positions.get(j).getStringNum();
-
-                if (stringNum > 0 && stringNum <= 6)
-                {
-                    possiblePositions[stringNum-1].add(positions.get(j));
-                }
+                strings[temp.get(j).getStringNum() - 1].add(temp.get(j));
             }
         }
-        */
 
+        // testing
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < strings[i].size(); j++)
+            {
+                System.out.println(strings[i].get(j));
+            }
+        }
+
+        // 
+
+        return voicings;
     }
-
-    
 
     // returns list of possible string/fret combos to play a given pitch
     public List<Tuple> retrievePositionArray (int pitch)
