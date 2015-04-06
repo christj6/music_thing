@@ -20,7 +20,13 @@ public class Voicing
 	// attributes
 	private LinkedList<Note> chord;
 	private int numberOfNotes;
-	private Tuple[] positions;
+
+	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
+	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
+	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0};
+
+
+	// private int value; // will be changed frequently when computing transitions for each possible chord voicing
 
 
 	// constants
@@ -40,67 +46,113 @@ public class Voicing
 		// empty constructor
 	}
 
-	// constructor
-	public Voicing(LinkedList<Note> notes)
+	public Voicing(Tuple[] lhFingers)
 	{		
-		chord = notes;
-		numberOfNotes = chord.size();
-		positions = new Tuple[numberOfNotes];
+		this.lhFingers = lhFingers;
+	}
 
-		for (int i = 0; i < positions.length; i++)
-		{
-			// do thing here
-		}
+	// constructor
+	public Voicing(Tuple[] lhFingers, Double[] expirations, int[] rhFingers)
+	{		
+		this.lhFingers = lhFingers;
+		this.expirations = expirations;
+		this.rhFingers = rhFingers;
 	}
 
 	// setters
-
-	// getters
-
-	// takes in pitch value & string, returns fret value
-	public int getFret (int stringNum, int pitch)
+	public void mapFinger (int fingerNum, int stringNum, int fretNum, Double expiration)
 	{
-		switch(stringNum)
+		if (fingerNum > -1 && fingerNum < 4)
 		{
-			case 1:
-				return pitch - highEString;
-			case 2:
-				return pitch - bString;
-			case 3:
-				return pitch - gString;
-			case 4:
-				return pitch - dString;
-			case 5:
-				return pitch - aString;
-			case 6:
-				return pitch - lowEString;
-			default:
-				return -1;
+			if (lhFingers[fingerNum].getStringNum() == -1 && lhFingers[fingerNum].getFretNum() == -1)
+			{
+				//
+				lhFingers[fingerNum].setStringNum(stringNum);
+				lhFingers[fingerNum].setFretNum(fretNum);
+			}
+			else
+			{
+				// finger's already assigned
+				if (expiration > expirations[fingerNum])
+				{
+					// finger's previous position expired, it can be reassigned
+					lhFingers[fingerNum].setStringNum(stringNum);
+					lhFingers[fingerNum].setFretNum(fretNum);
+				}
+				else
+				{
+					// can't be reassigned yet, without value penalty
+				}
+			}
 		}
-		//return null;
-	}
-
-	// takes in string and fret number, returns pitch value
-	public int getPitch (int stringNum, int fretNum)
-	{
-		switch(stringNum)
+		else
 		{
-			case 1:
-				return highEString + fretNum;
-			case 2:
-				return bString + fretNum;
-			case 3:
-				return gString + fretNum;
-			case 4:
-				return dString + fretNum;
-			case 5:
-				return aString + fretNum;
-			case 6:
-				return lowEString + fretNum;
-			default:
-				return -1;
+			// finger outside range
 		}
 	}
+
+	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
+    public boolean chordTester()
+    {
+
+        // first round of checks
+        for (int i = 0; i < lhFingers.length-1; i++)
+        {
+            int currentFret = lhFingers[i].getFretNum();
+            int nextFret = lhFingers[i+1].getFretNum();
+
+            // System.out.println(currentFret + " vs " + nextFret);
+
+            if (currentFret > 0 && nextFret > 0) // watch for open strings (0) and unassigned fingers (-1)
+            {
+                // check that index is leftmost, and subsequent fingers are at or past their predecessor
+                if (nextFret < currentFret)
+                {
+                    return false; 
+                }
+
+                // check that gaps between adjacent fingers are not too big
+                if ((nextFret - currentFret) > 2) // if the guitarist's hand is huge, consider making this number bigger
+                {
+                    return false;
+                }
+            }
+        }
+
+        // check that each string gets only one note each
+        int[] noteCount = new int[] {0, 0, 0, 0, 0, 0};
+
+        for (int i = 0; i < lhFingers.length; i++)
+        {
+            int currentString = lhFingers[i].getStringNum(); // stringNum goes from 1 to 6, unless unset, in which case it's -1 or 0
+
+            if (currentString >= 1 && currentString <= 6)
+            {
+                noteCount[currentString-1]++;
+
+                if (noteCount[currentString-1] > 1)
+                {
+                    return false;
+                }
+            }
+        }
+
+
+
+        return true;
+    }
+
+    // output object as string, for debug purposes
+    public String toString()
+    {
+    	String output = "";
+    	output += "left index holds " + lhFingers[0].toString();
+    	output += "left middle holds " + lhFingers[1].toString();
+    	output += "left ring holds " + lhFingers[2].toString();
+    	output += "left pinkie holds " + lhFingers[3].toString();
+
+    	return output;
+    }
 
 	// some sort of compare method
 }
