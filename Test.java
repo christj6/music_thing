@@ -181,28 +181,11 @@ public class Test implements JMC
         List<Voicing> voicings = new ArrayList<Voicing>();
 
         // find first voicing, move it around
-        int currentFinger = 0;
-        int currentNote = 0;
-        Voicing voic = new Voicing();
-        for (int i = 0; i < (highestPossibleNote - highEString); i++) // frets
-        {
-            for (int j = 0; j < 6; j++) // strings
-            {
-                Tuple currentPosition = new Tuple(j+1, i);
+        
+        Voicing voic = new Voicing(chord);
 
-                if (currentFinger < 4 && currentNote < chord.size())
-                {
-                    if (currentPosition.getPitch(j+1, i) == chord.get(currentNote).getPitch())
-                    {
-                        voic.mapFinger(currentFinger, j+1, i, -0.5);
-                        currentFinger++;
-                        currentNote++;
-                    }
-                }
-            }
-        }
 
-        System.out.println(voic);
+        // System.out.println(voic);
 
         // System.out.println(voic.chordTester());
 
