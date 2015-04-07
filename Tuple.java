@@ -1,10 +1,19 @@
 
 // Tuple class for left hand finger position on guitar
+import jm.JMC;
+import jm.music.data.*;
+import jm.music.tools.*;
+import jm.midi.*;
+import jm.util.*;
+
+import java.io.*;
+import java.util.*;
 
 public class Tuple implements Comparable<Tuple>
 {
 	private int stringNum;
 	private int fretNum;
+	// private Note note;
 
 	// constants
 	public static final int maximumPolyphony = 6; // 6 strings, can be strummed simultaneously
@@ -71,6 +80,7 @@ public class Tuple implements Comparable<Tuple>
 		}
 	}
 
+	// sort positions based on where they are on the fretboard
 	public int compareTo(Tuple other) 
     {
         if (this.getFretNum() > other.getFretNum()) 
@@ -82,5 +92,19 @@ public class Tuple implements Comparable<Tuple>
             return -1;
         }
         return 0;
+    }
+
+    public String toString()
+    {
+    	String output = "";
+    	if (stringNum == -1 && fretNum == -1)
+    	{
+    		output += "nothing\n";
+    	}
+    	else
+    	{
+    		output += "string " + stringNum + ", fret " + fretNum + "\n";
+    	}
+    	return output;
     }
 }
