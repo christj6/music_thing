@@ -180,38 +180,40 @@ public class Test implements JMC
     {
         List<Voicing> voicings = new ArrayList<Voicing>();
 
-        List<Tuple>[] strings = new ArrayList[6];
-        for (int i = 0; i < 6; i++)
+        // find first voicing, move it around
+        int currentFinger = 0;
+        int currentNote = 0;
+        Voicing voic = new Voicing();
+        for (int i = 0; i < (highestPossibleNote - highEString); i++) // frets
         {
-            strings[i] = new ArrayList<Tuple>();
-        }
-
-        for (int i = 0; i < chord.size(); i++)
-        {
-            Note note = chord.get(i);
-
-            int pitch = note.getPitch();
-
-            List<Tuple> temp = retrievePositionArray(pitch);
-
-            for (int j = 0; j < temp.size(); j++)
+            for (int j = 0; j < 6; j++) // strings
             {
-                strings[temp.get(j).getStringNum() - 1].add(temp.get(j));
+                Tuple currentPosition = new Tuple(j+1, i);
+
+                if (currentFinger < 4 && currentNote < chord.size())
+                {
+                    if (currentPosition.getPitch(j+1, i) == chord.get(currentNote).getPitch())
+                    {
+                        voic.mapFinger(currentFinger, j+1, i, -0.5);
+                        currentFinger++;
+                        currentNote++;
+                    }
+                }
             }
         }
 
-        // testing
-        for (int i = 0; i < 6; i++)
-        {
-            for (int j = 0; j < strings[i].size(); j++)
-            {
-                System.out.println(strings[i].get(j));
-            }
-        }
+        System.out.println(voic);
 
-        // 
+        // System.out.println(voic.chordTester());
 
         return voicings;
+    }
+
+    // takes a voicing, moves it up a string (if it's possible to do so)
+    // for example, string 6 fret 5 can become string 5 fret 0
+    public Voicing moveVoicing (Voicing voic, int stringsUp)
+    {
+        return null;
     }
 
     // returns list of possible string/fret combos to play a given pitch
