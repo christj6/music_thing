@@ -25,7 +25,9 @@ public class Voicing
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
 	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0};
 
+	private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
 
+	private LinkedList<Note> chord;
 	// private int value; // will be changed frequently when computing transitions for each possible chord voicing
 
 
@@ -59,42 +61,55 @@ public class Voicing
 		this.rhFingers = rhFingers;
 	}
 
+	public Voicing(LinkedList<Note> chord)
+	{
+		this.chord = chord;
+
+		int currentFinger = 0;
+        int currentNote = 0;
+
+		for (int i = 0; i < (highestPossibleNote - highEString); i++) // frets
+        {
+            for (int j = 0; j < 6; j++) // strings
+            {
+                Tuple currentPosition = new Tuple(j+1, i);
+
+                if (currentFinger < 4 && currentNote < chord.size())
+                {
+                    if (currentPosition.getPitch(j+1, i) == chord.get(currentNote).getPitch())
+                    {
+                        this.assignLhFinger(currentFinger, j+1, i, -0.5); // change the -0.5 to a chord.get(currentNote).getDuration() + start? or something
+
+                        if (i != 0)
+                        {
+                            currentFinger++;
+                        }
+
+                        currentNote++;
+                    }
+                }
+            }
+        }
+
+        this.assignRhFingers();
+	}
+
 	// setters
-	public void mapFinger (int fingerNum, int stringNum, int fretNum, Double expiration)
+	public void assignLhFinger (int fingerNum, int stringNum, int fretNum, Double expiration)
 	{
 		if (fingerNum > -1 && fingerNum < 4)
 		{
 			if (fretNum == 0)
 			{
-				lhFingers[fingerNum].setStringNum(-1);
-				lhFingers[fingerNum].setFretNum(-1);
-
-				// map first available finger on right hand
-				for (int i = 0; i < rhFingers.length; i++)
-				{
-					if (rhFingers[i] == -1)
-					{
-						rhFingers[i] = stringNum; // assign right finger, leave left finger at -1
-						i = rhFingers.length;
-					}
-				}
-
+				stringsUsed[stringNum - 1] = 1;
 			}
-			if (lhFingers[fingerNum].getStringNum() == -1 && lhFingers[fingerNum].getFretNum() == -1)
+			else if (lhFingers[fingerNum].getStringNum() == -1 && lhFingers[fingerNum].getFretNum() == -1)
 			{
 				// expiration doesn't matter if the finger is unassigned, so we don't consider the expiration value
 				lhFingers[fingerNum].setStringNum(stringNum);
 				lhFingers[fingerNum].setFretNum(fretNum);
 
-				// assign first available right hand finger
-				for (int i = 0; i < rhFingers.length; i++)
-				{
-					if (rhFingers[i] == -1)
-					{
-						rhFingers[i] = stringNum;
-						i = rhFingers.length;
-					}
-				}
+				stringsUsed[stringNum - 1] = 1;
 			}
 			else
 			{
@@ -105,15 +120,7 @@ public class Voicing
 					lhFingers[fingerNum].setStringNum(stringNum);
 					lhFingers[fingerNum].setFretNum(fretNum);
 
-					// assign first available right hand finger
-					for (int i = 0; i < rhFingers.length; i++)
-					{
-						if (rhFingers[i] == -1)
-						{
-							rhFingers[i] = stringNum;
-							i = rhFingers.length;
-						}
-					}
+					stringsUsed[stringNum - 1] = 1;
 				}
 				else
 				{
@@ -124,6 +131,25 @@ public class Voicing
 		else
 		{
 			// finger outside range
+		}
+	}
+
+	public void assignRhFingers()
+	{
+		// only call this after left hand fingers have been assigned
+		for (int i = 0; i < stringsUsed.length; i++)
+		{
+			if (stringsUsed[i] == 1)
+			{
+				for (int j = 0; j < rhFingers.length; j++)
+				{
+					if (rhFingers[j] == -1)
+					{
+						rhFingers[j] = i+1;
+						j = rhFingers.length;
+					}
+				}
+			}
 		}
 	}
 
