@@ -18,8 +18,8 @@ public class Voicing
 	// If we are estimating the distance between two positions (based on average of left hand finger positions?), don't include the 0 fret for open strings
 	
 	// attributes
-	private LinkedList<Note> chord;
-	private int numberOfNotes;
+	// private LinkedList<Note> chord;
+	// private int numberOfNotes;
 
 	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
@@ -64,11 +64,37 @@ public class Voicing
 	{
 		if (fingerNum > -1 && fingerNum < 4)
 		{
+			if (fretNum == 0)
+			{
+				lhFingers[fingerNum].setStringNum(-1);
+				lhFingers[fingerNum].setFretNum(-1);
+
+				// map first available finger on right hand
+				for (int i = 0; i < rhFingers.length; i++)
+				{
+					if (rhFingers[i] == -1)
+					{
+						rhFingers[i] = stringNum; // assign right finger, leave left finger at -1
+						i = rhFingers.length;
+					}
+				}
+
+			}
 			if (lhFingers[fingerNum].getStringNum() == -1 && lhFingers[fingerNum].getFretNum() == -1)
 			{
-				//
+				// expiration doesn't matter if the finger is unassigned, so we don't consider the expiration value
 				lhFingers[fingerNum].setStringNum(stringNum);
 				lhFingers[fingerNum].setFretNum(fretNum);
+
+				// assign first available right hand finger
+				for (int i = 0; i < rhFingers.length; i++)
+				{
+					if (rhFingers[i] == -1)
+					{
+						rhFingers[i] = stringNum;
+						i = rhFingers.length;
+					}
+				}
 			}
 			else
 			{
@@ -78,6 +104,16 @@ public class Voicing
 					// finger's previous position expired, it can be reassigned
 					lhFingers[fingerNum].setStringNum(stringNum);
 					lhFingers[fingerNum].setFretNum(fretNum);
+
+					// assign first available right hand finger
+					for (int i = 0; i < rhFingers.length; i++)
+					{
+						if (rhFingers[i] == -1)
+						{
+							rhFingers[i] = stringNum;
+							i = rhFingers.length;
+						}
+					}
 				}
 				else
 				{
@@ -150,6 +186,11 @@ public class Voicing
     	output += "left middle holds " + lhFingers[1].toString();
     	output += "left ring holds " + lhFingers[2].toString();
     	output += "left pinkie holds " + lhFingers[3].toString();
+
+    	output += "right thumb plucks string " + rhFingers[0] + "\n";
+    	output += "right index plucks string " + rhFingers[1] + "\n";
+    	output += "right middle plucks string " + rhFingers[2] + "\n";
+    	output += "right ring plucks string " + rhFingers[3] + "\n";
 
     	return output;
     }
