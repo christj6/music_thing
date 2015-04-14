@@ -13,7 +13,6 @@ public class Tuple implements Comparable<Tuple>
 {
 	private int stringNum;
 	private int fretNum;
-	// private Note note;
 
 	// constants
 	public static final int maximumPolyphony = 6; // 6 strings, can be strummed simultaneously
@@ -56,6 +55,35 @@ public class Tuple implements Comparable<Tuple>
 	public void setFretNum(int fretNum)
 	{
 		this.fretNum = fretNum;
+	}
+
+	// modify a tuple so it goes up or down some # of strings
+	public void shift (int shift)
+	{
+		int originalPitch = this.getPitch(this.stringNum, this.fretNum);
+
+		int newStringNum = this.stringNum + shift;
+
+		if (newStringNum <= 6 && newStringNum >= 0)
+		{
+			int newFretNum = -1;
+
+			for (int i = 0; i < (highestPossibleNote - highEString); i++)
+			{
+				if (this.getPitch(newStringNum, i) == originalPitch)
+				{
+					newFretNum = i;
+
+					i = highestPossibleNote - highEString; // trip loop when fret # is found
+				}
+			}
+
+			if (newFretNum > -1) // if the fret # is not found, don't modify the fretNum or stringNum
+			{
+				this.setStringNum(newStringNum);
+				this.setFretNum(newFretNum);
+			}
+		}
 	}
 
 	// takes in string and fret number, returns pitch value
