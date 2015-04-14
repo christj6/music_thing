@@ -18,9 +18,6 @@ public class Voicing
 	// If we are estimating the distance between two positions (based on average of left hand finger positions?), don't include the 0 fret for open strings
 	
 	// attributes
-	// private LinkedList<Note> chord;
-	// private int numberOfNotes;
-
 	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
 	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0};
@@ -61,12 +58,13 @@ public class Voicing
 		this.rhFingers = rhFingers;
 	}
 
+	// main constructor
 	public Voicing(LinkedList<Note> chord)
 	{
 		this.chord = chord;
 
-		int currentFinger = 0;
-        int currentNote = 0;
+		int currentFinger = 0; // 0 refers to index finger
+        int currentNote = 0; // 0 refers to bottom note of chord
 
 		for (int i = 0; i < (highestPossibleNote - highEString); i++) // frets
         {
@@ -151,6 +149,60 @@ public class Voicing
 				}
 			}
 		}
+	}
+
+	public void resetLhFingers()
+	{
+		for (int i = 0; i < lhFingers.length; i++)
+		{
+			lhFingers[i] = new Tuple(-1, -1);
+		}
+	}
+
+	public void resetRhFingers()
+	{
+		for (int i = 0; i < stringsUsed.length; i++)
+		{
+			stringsUsed[i] = 0;
+		}
+
+		for (int i = 0; i < rhFingers.length; i++)
+		{
+			rhFingers[i] = -1;
+		}
+	}
+
+	public Voicing shift (int stringsUp)
+	{
+		Voicing voic = new Voicing();
+
+		int maxMoveUp = 0;
+		int maxMoveDown = 0;
+
+		boolean changeMax = false;
+
+		for (int i = 0; i < stringsUsed.length; i++)
+		{
+			if (stringsUsed[i] == 0)
+			{
+				if (changeMax == true)
+				{
+					maxMoveUp++;
+				}
+				else if (changeMax == false)
+				{
+					maxMoveDown++;
+				}
+			}
+			else if (stringsUsed[i] == 1)
+			{
+				changeMax = true;
+			}
+		}
+
+		// System.out.println(maxMoveUp + ", " + maxMoveDown);
+
+		return null;
 	}
 
 	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
