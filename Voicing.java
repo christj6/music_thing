@@ -21,7 +21,7 @@ public class Voicing
 	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private Tuple[] fretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
-	// private Double[] expirations = {-1.0, -1.0, -1.0, -1.0};
+	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
 	private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
 
@@ -96,6 +96,11 @@ public class Voicing
 	// setters
 	public void assignLhFinger (int fingerNum, int stringNum, int fretNum)
 	{
+		if (fretboard[stringNum - 1].getStringNum() == -1)
+		{
+			fretboard[stringNum - 1] = new Tuple(stringNum, fretNum);
+		}
+
 		if (fingerNum > -1 && fingerNum < 4)
 		{
 			if (fretNum == 0 && stringsUsed[stringNum - 1] == 0)
@@ -222,7 +227,7 @@ public class Voicing
 			Collections.sort(tuples);
 			for (int i = 0; i < tuples.size(); i++)
 			{
-				tuples.get(i).shift(1);
+				tuples.get(i).shift(-1);
 			}
 
 			this.resetLhFingers();
@@ -254,22 +259,12 @@ public class Voicing
 			}
 
 			this.assignRhFingers();
-
-			/*
-			for (int i = 0; i < lhFingers.length; i++)
-			{
-				lhFingers[i].shift(1);
-			}
-			*/
 		}
 		else
 		{
 			// either shift is 0 (do nothing) or shift is out of bounds (do nothing)
 		}
 
-		// System.out.println(maxMoveUp + ", " + maxMoveDown);
-
-		// return null;
 	}
 
 	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
