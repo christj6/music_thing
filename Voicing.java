@@ -19,8 +19,9 @@ public class Voicing
 	
 	// attributes
 	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
+	private Tuple[] fretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
-	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0};
+	// private Double[] expirations = {-1.0, -1.0, -1.0, -1.0};
 
 	private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
 
@@ -54,7 +55,7 @@ public class Voicing
 	public Voicing(Tuple[] lhFingers, Double[] expirations, int[] rhFingers)
 	{		
 		this.lhFingers = lhFingers;
-		this.expirations = expirations;
+		// this.expirations = expirations;
 		this.rhFingers = rhFingers;
 	}
 
@@ -76,7 +77,7 @@ public class Voicing
                 {
                     if (currentPosition.getPitch(j+1, i) == chord.get(currentNote).getPitch())
                     {
-                        this.assignLhFinger(currentFinger, j+1, i, -0.5); // change the -0.5 to a chord.get(currentNote).getDuration() + start? or something
+                        this.assignLhFinger(currentFinger, j+1, i);
 
                         if (i != 0)
                         {
@@ -93,37 +94,21 @@ public class Voicing
 	}
 
 	// setters
-	public void assignLhFinger (int fingerNum, int stringNum, int fretNum, Double expiration)
+	public void assignLhFinger (int fingerNum, int stringNum, int fretNum)
 	{
 		if (fingerNum > -1 && fingerNum < 4)
 		{
-			if (fretNum == 0)
+			if (fretNum == 0 && stringsUsed[stringNum - 1] == 0)
 			{
 				stringsUsed[stringNum - 1] = 1;
 			}
-			else if (lhFingers[fingerNum].getStringNum() == -1 && lhFingers[fingerNum].getFretNum() == -1)
+			else if (lhFingers[fingerNum].getStringNum() == -1 && lhFingers[fingerNum].getFretNum() == -1 && stringsUsed[stringNum - 1] == 0)
 			{
 				// expiration doesn't matter if the finger is unassigned, so we don't consider the expiration value
 				lhFingers[fingerNum].setStringNum(stringNum);
 				lhFingers[fingerNum].setFretNum(fretNum);
 
 				stringsUsed[stringNum - 1] = 1;
-			}
-			else
-			{
-				// finger's already assigned
-				if (expiration > expirations[fingerNum])
-				{
-					// finger's previous position expired, it can be reassigned
-					lhFingers[fingerNum].setStringNum(stringNum);
-					lhFingers[fingerNum].setFretNum(fretNum);
-
-					stringsUsed[stringNum - 1] = 1;
-				}
-				else
-				{
-					// can't be reassigned yet, without value penalty
-				}
 			}
 		}
 		else
@@ -172,12 +157,11 @@ public class Voicing
 		}
 	}
 
-	public Voicing shift (int stringsUp)
+	public void shiftUp()
 	{
-		Voicing voic = new Voicing();
 
 		int maxMoveUp = 0;
-		int maxMoveDown = 0;
+		// int maxMoveDown = 0;
 
 		boolean changeMax = false;
 
@@ -191,7 +175,7 @@ public class Voicing
 				}
 				else if (changeMax == false)
 				{
-					maxMoveDown++;
+					// maxMoveDown++;
 				}
 			}
 			else if (stringsUsed[i] == 1)
@@ -200,9 +184,92 @@ public class Voicing
 			}
 		}
 
+		if (maxMoveUp > 0)
+		{
+			// gather list of tuples -- both the lhFinger ones and the open string ones
+			List<Tuple> tuples = new ArrayList<Tuple>();
+			for (int i = 0; i < lhFingers.length; i++)
+			{
+				tuples.add(lhFingers[i]);
+			}
+
+			// find the open string notes. Currently they don't require a lh finger, but moving them up a string will change that.
+			for (int i = 0; i < stringsUsed.length; i++)
+			{
+				if (stringsUsed[i] == 1)
+				{
+					// check if there is already a tuple in tuples on that string -- if not, add the open string to tuples
+					boolean foundInPrevTuples = false;
+
+					for (int j = 0; j < lhFingers.length; j++)
+					{
+						if (lhFingers[j].getStringNum() == i+1)
+						{
+							// do nothing
+							j = lhFingers.length;
+							foundInPrevTuples = true;
+						}
+					}
+
+					if (foundInPrevTuples == false)
+					{
+						Tuple open = new Tuple(i+1, 0);
+						tuples.add(open);
+					}
+				}
+			}
+
+			Collections.sort(tuples);
+			for (int i = 0; i < tuples.size(); i++)
+			{
+				tuples.get(i).shift(1);
+			}
+
+			this.resetLhFingers();
+			this.resetRhFingers();
+
+			int currentFinger = 0;
+
+			for (int i = 0; i < 6; i++)
+			{
+				for (int j = 0; j < tuples.size(); j++)
+				{
+					Tuple current = tuples.get(j);
+
+					if (current.getStringNum() == i+1)
+					{
+						if (current.getFretNum() == 0)
+						{
+							stringsUsed[i] = 1;
+							tuples.remove(j);
+							j = tuples.size();
+						}
+						else
+						{
+							this.assignLhFinger(currentFinger, current.getStringNum(), current.getFretNum());
+							currentFinger++;
+						}
+					}
+				}
+			}
+
+			this.assignRhFingers();
+
+			/*
+			for (int i = 0; i < lhFingers.length; i++)
+			{
+				lhFingers[i].shift(1);
+			}
+			*/
+		}
+		else
+		{
+			// either shift is 0 (do nothing) or shift is out of bounds (do nothing)
+		}
+
 		// System.out.println(maxMoveUp + ", " + maxMoveDown);
 
-		return null;
+		// return null;
 	}
 
 	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
