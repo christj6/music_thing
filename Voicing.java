@@ -26,6 +26,7 @@ public class Voicing
 	private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
 
 	private LinkedList<Note> chord;
+	private Double avgDistance = 0.0;
 	// private int value; // will be changed frequently when computing transitions for each possible chord voicing
 
 
@@ -318,6 +319,27 @@ public class Voicing
         return true;
     }
 
+    // calc avg distance of fingers from tail of guitar
+    public void avgDistance()
+    {
+    	Double sum = 0.0;
+    	int stringsUsed = 0;
+
+    	for (int i = 0; i < fretboard.length; i++)
+    	{
+    		if (fretboard[i].getFretNum() > -1)
+    		{
+    			sum += fretboard[i].getFretNum();
+    			stringsUsed++;
+    		}
+    	}
+
+    	if (stringsUsed > 0)
+    	{
+    		this.avgDistance = sum / stringsUsed;
+    	}
+    }
+
     // output object as string, for debug purposes
     public String toString()
     {
@@ -331,6 +353,9 @@ public class Voicing
     	output += "right index plucks string " + rhFingers[1] + "\n";
     	output += "right middle plucks string " + rhFingers[2] + "\n";
     	output += "right ring plucks string " + rhFingers[3] + "\n";
+
+    	// this.avgDistance();
+    	// output += "avg distance of fingers from tail: " + this.avgDistance;
 
     	return output;
     }
