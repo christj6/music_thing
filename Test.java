@@ -23,6 +23,8 @@ public class Test implements JMC
 
     public static final int highestPossibleNote = 84; // assumes the guitar has 20 frets
 
+    public static final int MAX_FINGER_GAP = 2;
+
     // score
     private Score score = new Score();
     // private Set<Double> uniqueStartTimes = new HashSet<Double>();
@@ -334,7 +336,7 @@ public class Test implements JMC
                     }
 
                     //--------------------------------------------------------------------------
-                    boolean gapsDoNotExceedTwoFrets = true;
+                    boolean gapsDoNotExceedMax = true;
 
                     int[] fretNumbers = new int[tempList.length];
 
@@ -347,18 +349,31 @@ public class Test implements JMC
 
                     for (int i = 0; i < fretNumbers.length - 1; i++)
                     {
-                        if (fretNumbers[i] > 0 && fretNumbers[i+1] > 0 && (Math.abs(fretNumbers[i] - fretNumbers[i+1]) > 2))
+                        if (fretNumbers[i] > 0 && fretNumbers[i+1] > 0 && (Math.abs(fretNumbers[i] - fretNumbers[i+1]) > MAX_FINGER_GAP))
                         {
-                            gapsDoNotExceedTwoFrets = false;
+                            gapsDoNotExceedMax = false;
                         }
                     }
 
                     //--------------------------------------------------------------------------
-                    if (rightPitchValues == true && noStringPlaysMultipleNotes == true && needsNoMoreThanFourFingers == true && gapsDoNotExceedTwoFrets == true)
+                    if (rightPitchValues == true && noStringPlaysMultipleNotes == true && needsNoMoreThanFourFingers == true && gapsDoNotExceedMax == true)
                     {
-                        for (int i = 0; i < tempList.length; i++)
+                        Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
+                        for (int i = 0; i < tempFretboard.length; i++)
                         {
-                            System.out.println(tempList[i]);
+                            for (int j = 0; j < tempList.length; j++)
+                            {
+                                if (tempList[j].getStringNum() == i+1)
+                                {
+                                    tempFretboard[i] = tempList[j];
+                                }
+                            }
+                        }
+
+                        // debug
+                        for (int i = 0; i < tempFretboard.length; i++)
+                        {
+                            System.out.println(tempFretboard[i]);
                         }
                         System.out.println("");
                     }
