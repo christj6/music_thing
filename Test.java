@@ -266,7 +266,7 @@ public class Test implements JMC
             {
                 combination[r] = index;
                      
-                // if we are at the last position print and increase the index
+                // last position: process and increase the index
                 if(r == K-1)
                 {
  
@@ -274,21 +274,26 @@ public class Test implements JMC
                     // print(combination, elements);
                     // Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
                     Tuple[] tempList = new Tuple[K];
-                    int[] stringOccurrences = new int[] {0, 0, 0, 0, 0, 0};
+                   
                     int tempIndex = 0;
-
-                    boolean noStringPlaysMultipleNotes = true;
 
                     for (int i = 0; i < combination.length; i++)
                     {
                         tempList[tempIndex] = elements[combination[i]];
-                        
+                        tempIndex++;
+                    }
 
-                        if (tempList[tempIndex].getStringNum() > 0 && tempList[tempIndex].getStringNum() <= 6)
+                    //--------------------------------------------------------------------------
+                    boolean noStringPlaysMultipleNotes = true; // innocent until proven guilty
+                    int[] stringOccurrences = new int[] {0, 0, 0, 0, 0, 0};
+
+                    for (int i = 0; i < tempList.length; i++)
+                    {
+                        if (tempList[i].getStringNum() > 0 && tempList[i].getStringNum() <= 6)
                         {
-                            stringOccurrences[tempList[tempIndex].getStringNum() - 1]++;
+                            stringOccurrences[tempList[i].getStringNum() - 1]++;
 
-                            if (stringOccurrences[tempList[tempIndex].getStringNum() - 1] > 1)
+                            if (stringOccurrences[tempList[i].getStringNum() - 1] > 1)
                             {
                                 // disregard combination
                                 noStringPlaysMultipleNotes = false;
@@ -296,10 +301,9 @@ public class Test implements JMC
                             // if at any point this value exceeds 1, delete the combination,
                             // because this combination attempts to play multiple notes on one string, which is not possible
                         }
-
-                        tempIndex++;
                     }
 
+                    //--------------------------------------------------------------------------
                     boolean rightPitchValues = true;
 
                     for (int i = 0; i < tempList.length; i++)
@@ -310,8 +314,47 @@ public class Test implements JMC
                         }
                     }
 
-                    // not testing fingers yet
-                    if (rightPitchValues == true && noStringPlaysMultipleNotes == true)
+                    //--------------------------------------------------------------------------
+                    boolean needsNoMoreThanFourFingers = true;
+                    int fingersNeeded = 0;
+
+                    for (int i = 0; i < tempList.length; i++)
+                    {
+                        int pitchValue = tempList[i].getPitch(tempList[i].getStringNum(), tempList[i].getFretNum());
+
+                        if (!isOpenNote(pitchValue))
+                        {
+                            fingersNeeded++;
+                        }
+                    }
+
+                    if (fingersNeeded > 4)
+                    {
+                        needsNoMoreThanFourFingers = false; // what about barre chords?
+                    }
+
+                    //--------------------------------------------------------------------------
+                    boolean gapsDoNotExceedTwoFrets = true;
+
+                    int[] fretNumbers = new int[tempList.length];
+
+                    for (int i = 0; i < tempList.length; i++)
+                    {
+                        fretNumbers[i] = tempList[i].getFretNum();
+                    }
+
+                    Arrays.sort(fretNumbers);
+
+                    for (int i = 0; i < fretNumbers.length - 1; i++)
+                    {
+                        if (fretNumbers[i] > 0 && fretNumbers[i+1] > 0 && (Math.abs(fretNumbers[i] - fretNumbers[i+1]) > 2))
+                        {
+                            gapsDoNotExceedTwoFrets = false;
+                        }
+                    }
+
+                    //--------------------------------------------------------------------------
+                    if (rightPitchValues == true && noStringPlaysMultipleNotes == true && needsNoMoreThanFourFingers == true && gapsDoNotExceedTwoFrets == true)
                     {
                         for (int i = 0; i < tempList.length; i++)
                         {
