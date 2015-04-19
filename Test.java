@@ -323,12 +323,53 @@ public class Test implements JMC
                             }
                         }
 
+                        // tempFretboard is set, now determine combinations of finger placements
+                        Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
+                        int currentFingerIndex = 0;
+
+                        for (int i = 0; i < tempFretboard.length; i++)
+                        {
+                            int pitchValue = tempFretboard[i].getPitch(tempFretboard[i].getStringNum(), tempFretboard[i].getFretNum());
+
+                            if (!isOpenNote(pitchValue) && pitchValue > -1)
+                            {
+                                lhFingers[currentFingerIndex] = tempFretboard[i];
+                                currentFingerIndex++;
+                            }
+                        }
+
+                        // lhFingers is populated
+                        List<Tuple[]> fingerCombinations = lhFingerCombinations(lhFingers);
+
+                        for (int i = 0; i < fingerCombinations.size(); i++)
+                        {
+                            // System.out.println(fingerCombinations.get(i));
+
+                            Voicing voic = new Voicing(tempFretboard, fingerCombinations.get(i), chord);
+
+                            voicings.add(voic);
+
+                            System.out.println(voic);
+
+                            /*
+                            if (voic.chordTester() == true)
+                            {
+                                voicings.add(voic);
+
+                                System.out.println(voic);
+                            }
+                            */
+                        }
+
+
                         // printing for debug purposes
+                        /*
                         for (int i = 0; i < tempFretboard.length; i++)
                         {
                             System.out.println(tempFretboard[i]);
                         }
                         System.out.println("");
+                        */
                     }
 
                     index++;                
@@ -369,6 +410,67 @@ public class Test implements JMC
         */
 
         return voicings;
+    }
+
+    public List<Tuple[]> lhFingerCombinations(Tuple[] elements)
+    {
+        List<Tuple[]> results = new ArrayList<Tuple[]>();
+
+        int N = elements.length;
+        int K = 4;
+        int combination[] = new int[K];
+        int r = 0;      
+        int index = 0;
+         
+        while (r >= 0)
+        {
+            if (index <= (N + (r - K)))
+            {
+                combination[r] = index;
+                     
+                // last position: process and increase the index
+                if(r == K-1)
+                {
+                    //do something with the combination e.g. add to list or print
+                    // print(combination, elements);
+                    // Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
+                    Tuple[] tempList = new Tuple[K];
+                   
+                    int tempIndex = 0;
+
+                    for (int i = 0; i < combination.length; i++)
+                    {
+                        tempList[tempIndex] = elements[combination[i]];
+                        tempIndex++;
+                    }
+
+                    results.add(tempList);
+
+                    index++;                
+                }
+                else
+                {
+                    // select index for next position
+                    index = combination[r]+1;
+                    r++;                                        
+                }
+            }
+            else
+            {
+                r--;
+
+                if(r > 0)
+                {
+                    index = combination[r]+1;
+                }
+                else
+                {
+                    index = combination[0]+1;
+                }   
+            }           
+        }
+
+        return results;
     }
 
     // returns list of possible string/fret combos to play a given pitch
