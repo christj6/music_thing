@@ -204,60 +204,13 @@ public class Test implements JMC
             }
         }
 
-        /*
-        for (int i = 0; i < positions.size(); i++)
-        {
-            System.out.println(positions.get(i)); // prints out all possible locations of each note in chord
-        }
-        */
         Tuple[] elements = new Tuple[positions.size()];
         elements = positions.toArray(elements);
 
-        combination(elements, chord.size(), chord);
-
-        /*
-        for (int i = 0; i < chord.size(); i++)
-        {
-            int currentPitch = chord.get(i).getPitch();
-
-            for (int j = 0; j < positions.size(); j++)
-            {
-
-            }
-        }
-        */
-
-        return voicings;
-    }
-
-    // returns list of possible string/fret combos to play a given pitch
-    public List<Tuple> retrievePositionArray (int pitch)
-    {
-        List<Tuple> positions = new ArrayList<Tuple>();
-
-        for (int i = 1; i <= 6; i++)
-        {
-            for (int j = 0; j <= (highestPossibleNote - highEString); j++)
-            {
-                Tuple position = new Tuple(i, j);
-
-                if (position.getPitch(i, j) == pitch)
-                {
-                    positions.add(position);
-                }
-
-            }
-        }
-
-        Collections.sort(positions);
-
-        return positions;
-    }
-
-    // http://hmkcode.com/calculate-find-all-possible-combinations-of-an-array-using-java/
-    public void combination(Tuple[] elements, int K, LinkedList<Note> chord)
-    {
+        // http://hmkcode.com/calculate-find-all-possible-combinations-of-an-array-using-java/
+        //----------------------------------------------------------------------------------------------------
         int N = elements.length;
+        int K = chord.size();
         int combination[] = new int[K];
         int r = 0;      
         int index = 0;
@@ -370,7 +323,7 @@ public class Test implements JMC
                             }
                         }
 
-                        // debug
+                        // printing for debug purposes
                         for (int i = 0; i < tempFretboard.length; i++)
                         {
                             System.out.println(tempFretboard[i]);
@@ -401,12 +354,46 @@ public class Test implements JMC
                 }   
             }           
         }
+        //-----------------------------------------------------------------------------------------------------
+
+        /*
+        for (int i = 0; i < chord.size(); i++)
+        {
+            int currentPitch = chord.get(i).getPitch();
+
+            for (int j = 0; j < positions.size(); j++)
+            {
+
+            }
+        }
+        */
+
+        return voicings;
     }
 
+    // returns list of possible string/fret combos to play a given pitch
+    public List<Tuple> retrievePositionArray (int pitch)
+    {
+        List<Tuple> positions = new ArrayList<Tuple>();
 
+        for (int i = 1; i <= 6; i++)
+        {
+            for (int j = 0; j <= (highestPossibleNote - highEString); j++)
+            {
+                Tuple position = new Tuple(i, j);
 
+                if (position.getPitch(i, j) == pitch)
+                {
+                    positions.add(position);
+                }
 
+            }
+        }
 
+        Collections.sort(positions);
+
+        return positions;
+    }
 
 
 
