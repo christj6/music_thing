@@ -343,22 +343,18 @@ public class Test implements JMC
 
                         for (int i = 0; i < fingerCombinations.size(); i++)
                         {
-                            // System.out.println(fingerCombinations.get(i));
+                           for (int j = 0; j < fingerCombinations.get(i).length; j++)
+                           {
+                                // System.out.println(fingerCombinations.get(i)[j]);
+                           }
 
                             Voicing voic = new Voicing(tempFretboard, fingerCombinations.get(i), chord);
 
-                            voicings.add(voic);
-
-                            System.out.println(voic);
-
-                            /*
                             if (voic.chordTester() == true)
                             {
                                 voicings.add(voic);
-
                                 System.out.println(voic);
                             }
-                            */
                         }
 
 
@@ -416,59 +412,45 @@ public class Test implements JMC
     {
         List<Tuple[]> results = new ArrayList<Tuple[]>();
 
-        int N = elements.length;
-        int K = 4;
-        int combination[] = new int[K];
-        int r = 0;      
-        int index = 0;
-         
-        while (r >= 0)
+        /*
+        System.out.println("input");
+        for (int i = 0; i < elements.length; i++)
         {
-            if (index <= (N + (r - K)))
+            System.out.println(elements[i]);
+        }
+        */
+
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
             {
-                combination[r] = index;
-                     
-                // last position: process and increase the index
-                if(r == K-1)
+                for (int k = 0; k < 4; k++)
                 {
-                    //do something with the combination e.g. add to list or print
-                    // print(combination, elements);
-                    // Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
-                    Tuple[] tempList = new Tuple[K];
-                   
-                    int tempIndex = 0;
-
-                    for (int i = 0; i < combination.length; i++)
+                    for (int m = 0; m < 4; m++)
                     {
-                        tempList[tempIndex] = elements[combination[i]];
-                        tempIndex++;
+                        if (i != j && i != k && i != m && j != k && j != m && k != m)
+                        {
+                            Tuple[] tempCombo = new Tuple[4];
+
+                            tempCombo[0] = elements[i];
+                            tempCombo[1] = elements[j];
+                            tempCombo[2] = elements[k];
+                            tempCombo[3] = elements[m];
+
+                            results.add(tempCombo);
+                        }
                     }
-
-                    results.add(tempList);
-
-                    index++;                
-                }
-                else
-                {
-                    // select index for next position
-                    index = combination[r]+1;
-                    r++;                                        
                 }
             }
-            else
-            {
-                r--;
-
-                if(r > 0)
-                {
-                    index = combination[r]+1;
-                }
-                else
-                {
-                    index = combination[0]+1;
-                }   
-            }           
         }
+
+        /*
+        System.out.println("output");
+        for (int i = 0; i < results.size(); i++)
+        {
+            System.out.println(results.get(i));
+        }
+        */
 
         return results;
     }
