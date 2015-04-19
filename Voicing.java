@@ -104,29 +104,28 @@ public class Voicing
 	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
     public boolean chordTester()
     {
+    	List<Integer> occupiedFrets = new ArrayList<Integer>();
 
         // first round of checks
-        for (int i = 0; i < lhFingers.length-1; i++)
+        for (int i = 0; i < lhFingers.length; i++)
         {
             int currentFret = lhFingers[i].getFretNum();
-            int nextFret = lhFingers[i+1].getFretNum();
 
-            // System.out.println(currentFret + " vs " + nextFret);
-
-            if (currentFret > 0 && nextFret > 0) // watch for open strings (0) and unassigned fingers (-1)
+            if (currentFret > 0) // watch for open strings (0) and unassigned fingers (-1)
             {
-                // check that index is leftmost, and subsequent fingers are at or past their predecessor
-                if (nextFret < currentFret)
-                {
-                    return false; 
-                }
-
-                // check that gaps between adjacent fingers are not too big
-                if ((nextFret - currentFret) > 2) // if the guitarist's hand is huge, consider making this number bigger
-                {
-                    return false;
-                }
+            	occupiedFrets.add(currentFret);
             }
+        }
+
+        for (int i = 0; i < occupiedFrets.size() - 1; i++)
+        {
+        	int currentFret = occupiedFrets.get(i);
+        	int nextFret = occupiedFrets.get(i+1);
+
+        	if (nextFret < currentFret)
+        	{
+        		return false;
+        	}
         }
 
         // check that each string gets only one note each
