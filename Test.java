@@ -37,7 +37,7 @@ public class Test implements JMC
     // private Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
 
     // right hand (strings)
-    private int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
+    // private int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
 
     // sets up everything 
     public Test(String inputFile, String outputFile)
@@ -66,6 +66,14 @@ public class Test implements JMC
         // Voicing cMajorChordOpen = new Voicing(new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)});
         // System.out.println(cMajorChordOpen);
         // System.out.println("testing... " + cMajorChordOpen.chordTester());
+
+        // testing Tuple shift method
+        /*
+        Tuple x = new Tuple(1, 0);
+        System.out.println(x);
+        x.shift(1);
+        System.out.println(x);
+        */
     }
 
     public List<Double> sortedUniqueStartTimes()
@@ -180,23 +188,44 @@ public class Test implements JMC
     {
         List<Voicing> voicings = new ArrayList<Voicing>();
 
-        // find first voicing, move it around
-        
-        Voicing voic = new Voicing(chord);
+        List<Tuple> positions = new ArrayList<Tuple>();
 
+        for (int i = 0; i < chord.size(); i++)
+        {
+            int currentPitch = chord.get(i).getPitch();
 
-        // System.out.println(voic);
+            List<Tuple> temp = retrievePositionArray(currentPitch);
 
-        // System.out.println(voic.chordTester());
+            for (int j = 0; j < temp.size(); j++)
+            {
+                positions.add(temp.get(j));
+            }
+        }
+
+        /*
+        for (int i = 0; i < positions.size(); i++)
+        {
+            System.out.println(positions.get(i)); // prints out all possible locations of each note in chord
+        }
+        */
+        Tuple[] elements = new Tuple[positions.size()];
+        elements = positions.toArray(elements);
+
+        combination(elements, chord.size(), chord);
+
+        /*
+        for (int i = 0; i < chord.size(); i++)
+        {
+            int currentPitch = chord.get(i).getPitch();
+
+            for (int j = 0; j < positions.size(); j++)
+            {
+
+            }
+        }
+        */
 
         return voicings;
-    }
-
-    // takes a voicing, moves it up a string (if it's possible to do so)
-    // for example, string 6 fret 5 can become string 5 fret 0
-    public Voicing moveVoicing (Voicing voic, int stringsUp)
-    {
-        return null;
     }
 
     // returns list of possible string/fret combos to play a given pitch
@@ -222,6 +251,110 @@ public class Test implements JMC
 
         return positions;
     }
+
+    // http://hmkcode.com/calculate-find-all-possible-combinations-of-an-array-using-java/
+    public void combination(Tuple[] elements, int K, LinkedList<Note> chord)
+    {
+        int N = elements.length;
+        int combination[] = new int[K];
+        int r = 0;      
+        int index = 0;
+         
+        while (r >= 0)
+        {
+            if (index <= (N + (r - K)))
+            {
+                combination[r] = index;
+                     
+                // if we are at the last position print and increase the index
+                if(r == K-1)
+                {
+ 
+                    //do something with the combination e.g. add to list or print
+                    // print(combination, elements);
+                    // Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
+                    Tuple[] tempList = new Tuple[K];
+                    int[] stringOccurrences = new int[] {0, 0, 0, 0, 0, 0};
+                    int tempIndex = 0;
+
+                    boolean noStringPlaysMultipleNotes = true;
+
+                    for (int i = 0; i < combination.length; i++)
+                    {
+                        tempList[tempIndex] = elements[combination[i]];
+                        
+
+                        if (tempList[tempIndex].getStringNum() > 0 && tempList[tempIndex].getStringNum() <= 6)
+                        {
+                            stringOccurrences[tempList[tempIndex].getStringNum() - 1]++;
+
+                            if (stringOccurrences[tempList[tempIndex].getStringNum() - 1] > 1)
+                            {
+                                // disregard combination
+                                noStringPlaysMultipleNotes = false;
+                            }
+                            // if at any point this value exceeds 1, delete the combination,
+                            // because this combination attempts to play multiple notes on one string, which is not possible
+                        }
+
+                        tempIndex++;
+                    }
+
+                    boolean rightPitchValues = true;
+
+                    for (int i = 0; i < tempList.length; i++)
+                    {
+                        if (tempList[i].getPitch(tempList[i].getStringNum(), tempList[i].getFretNum()) != chord.get(i).getPitch())
+                        {
+                            rightPitchValues = false;
+                        }
+                    }
+
+                    // not testing fingers yet
+                    if (rightPitchValues == true && noStringPlaysMultipleNotes == true)
+                    {
+                        for (int i = 0; i < tempList.length; i++)
+                        {
+                            System.out.println(tempList[i]);
+                        }
+                        System.out.println("");
+                    }
+
+                    index++;                
+                }
+                else
+                {
+                    // select index for next position
+                    index = combination[r]+1;
+                    r++;                                        
+                }
+            }
+            else
+            {
+                r--;
+
+                if(r > 0)
+                {
+                    index = combination[r]+1;
+                }
+                else
+                {
+                    index = combination[0]+1;
+                }   
+            }           
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
 
     public int bestTransposition (Score score)
     {
