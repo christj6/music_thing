@@ -176,7 +176,19 @@ public class Test implements JMC
     {
 
         // based on the outcome of that function call, mess with structure??
-        List<Voicing> testing = retrieveVoicingArray(structure.get(0));
+        
+        List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
+
+        for (int i = 0; i < structure.size(); i++)
+        {
+            List<Voicing> current = retrieveVoicingArray(structure.get(i));
+
+            System.out.println(i + ": " + current.size());
+
+            grid.add(current);
+        }
+
+
 
         // create an array of lists of Voicing objects
         // for each voicing object, find the best-scoring next voicing to go to
@@ -339,33 +351,31 @@ public class Test implements JMC
                         }
 
                         // lhFingers is populated
-                        List<Tuple[]> fingerCombinations = lhFingerCombinations(lhFingers);
+                        List<Tuple[]> lhFingerCombinations = lhFingerCombinations(lhFingers);
 
-                        for (int i = 0; i < fingerCombinations.size(); i++)
+                        List<Integer[]> rhFingerCombinations = rhFingerCombinations();
+
+                        for (int i = 0; i < lhFingerCombinations.size(); i++)
                         {
-                           for (int j = 0; j < fingerCombinations.get(i).length; j++)
-                           {
-                                // System.out.println(fingerCombinations.get(i)[j]);
-                           }
-
-                            Voicing voic = new Voicing(tempFretboard, fingerCombinations.get(i), chord);
-
-                            if (voic.chordTester() == true)
+                            for (int j = 0; j < rhFingerCombinations.size(); j++)
                             {
-                                voicings.add(voic);
-                                System.out.println(voic);
+                                // sorting the fingers with Arrays.sort(###) destroys the finger arrangement by moving fingers around
+
+                                int[] rh = new int[4]; // convert the Int[] into a int[] array so it can be passed as a parameter
+                                for (int m = 0; m < 4; m++)
+                                {
+                                    rh[m] = rhFingerCombinations.get(j)[m];
+                                }
+
+                                Voicing voic = new Voicing(tempFretboard, lhFingerCombinations.get(i), rh, chord);
+
+                                if (voic.chordTester() == true)
+                                {
+                                    voicings.add(voic);
+                                    System.out.println(voic);
+                                }
                             }
                         }
-
-
-                        // printing for debug purposes
-                        /*
-                        for (int i = 0; i < tempFretboard.length; i++)
-                        {
-                            System.out.println(tempFretboard[i]);
-                        }
-                        System.out.println("");
-                        */
                     }
 
                     index++;                
@@ -393,32 +403,12 @@ public class Test implements JMC
         }
         //-----------------------------------------------------------------------------------------------------
 
-        /*
-        for (int i = 0; i < chord.size(); i++)
-        {
-            int currentPitch = chord.get(i).getPitch();
-
-            for (int j = 0; j < positions.size(); j++)
-            {
-
-            }
-        }
-        */
-
         return voicings;
     }
 
     public List<Tuple[]> lhFingerCombinations(Tuple[] elements)
     {
         List<Tuple[]> results = new ArrayList<Tuple[]>();
-
-        /*
-        System.out.println("input");
-        for (int i = 0; i < elements.length; i++)
-        {
-            System.out.println(elements[i]);
-        }
-        */
 
         for (int i = 0; i < 4; i++)
         {
@@ -428,7 +418,7 @@ public class Test implements JMC
                 {
                     for (int m = 0; m < 4; m++)
                     {
-                        if (i != j && i != k && i != m && j != k && j != m && k != m)
+                        if (i != j && i != k && i != m && j != k && j != m && k != m) // 24 possible combinations
                         {
                             Tuple[] tempCombo = new Tuple[4];
 
@@ -444,13 +434,36 @@ public class Test implements JMC
             }
         }
 
-        /*
-        System.out.println("output");
-        for (int i = 0; i < results.size(); i++)
+        return results;
+    }
+
+    public List<Integer[]> rhFingerCombinations()
+    {
+        List<Integer[]> results = new ArrayList<Integer[]>();
+
+        for (int i = 1; i <= 6; i++)
         {
-            System.out.println(results.get(i));
+            for (int j = 1; j <= 6; j++)
+            {
+                for (int k = 1; k <= 6; k++)
+                {
+                    for (int m = 1; m <= 6; m++)
+                    {
+                        if (i != j && i != k && i != m && j != k && j != m && k != m) // 360 possible combinations
+                        {
+                            Integer[] tempCombo = new Integer[4];
+
+                            tempCombo[0] = i;
+                            tempCombo[1] = j;
+                            tempCombo[2] = k;
+                            tempCombo[3] = m;
+
+                            results.add(tempCombo);
+                        }
+                    }
+                }
+            }
         }
-        */
 
         return results;
     }
