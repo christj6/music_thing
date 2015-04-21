@@ -23,10 +23,13 @@ public class Voicing
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
 	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
-	private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
+	// private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
 
 	private LinkedList<Note> chord;
 	private Double avgDistance = 0.0;
+
+	private boolean barre = false; // if index finger needs to hold multiple strings with the same fret #, it's probably a barre chord
+	private boolean strummed = false; // if more than 4 right-hand fingers are needed to play the chord, it's probably strummed
 	// private int value; // will be changed frequently when computing transitions for each possible chord voicing
 
 
@@ -48,57 +51,14 @@ public class Voicing
 	}
 
 	// main constructor
-	public Voicing(Tuple[] fretboard, Tuple[] lhFingers, LinkedList<Note> chord)
+	public Voicing(Tuple[] fretboard, Tuple[] lhFingers, int[] rhFingers, LinkedList<Note> chord)
 	{
 		this.chord = chord;
 		this.fretboard = fretboard;
-		this.lhFingers = lhFingers;		
-	}
+		this.lhFingers = lhFingers;	
+		this.rhFingers = rhFingers;
 
-	// setters
-	public void assignLhFinger (int fingerNum, int stringNum, int fretNum)
-	{
-		
-	}
-
-	public void assignRhFingers()
-	{
-		// only call this after left hand fingers have been assigned
-		for (int i = 0; i < stringsUsed.length; i++)
-		{
-			if (stringsUsed[i] == 1)
-			{
-				for (int j = 0; j < rhFingers.length; j++)
-				{
-					if (rhFingers[j] == -1)
-					{
-						rhFingers[j] = i+1;
-						j = rhFingers.length;
-					}
-				}
-			}
-		}
-	}
-
-	public void resetLhFingers()
-	{
-		for (int i = 0; i < lhFingers.length; i++)
-		{
-			lhFingers[i] = new Tuple(-1, -1);
-		}
-	}
-
-	public void resetRhFingers()
-	{
-		for (int i = 0; i < stringsUsed.length; i++)
-		{
-			stringsUsed[i] = 0;
-		}
-
-		for (int i = 0; i < rhFingers.length; i++)
-		{
-			rhFingers[i] = -1;
-		}
+		this.avgDistance();	
 	}
 
 	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
@@ -106,7 +66,9 @@ public class Voicing
     {
     	List<Integer> occupiedFrets = new ArrayList<Integer>();
 
-        // first round of checks
+        //------------------------------------------------------------------------------------------------------
+        // check the left hand fingers:
+
         for (int i = 0; i < lhFingers.length; i++)
         {
             int currentFret = lhFingers[i].getFretNum();
@@ -124,9 +86,44 @@ public class Voicing
 
         	if (nextFret < currentFret)
         	{
-        		return false;
+        		return false; // make sure that LH index is leftmost (if not index, middle -- if not middle, ring)
         	}
         }
+
+        //------------------------------------------------------------------------------------------------------
+        // check the right hand fingers:
+
+        // are the right hand fingers in order? thumb on bottom (near string 6), index above thumb, etc?
+        for (int i = 0; i < rhFingers.length - 1; i++)
+    	{
+    		if (rhFingers[i] < rhFingers[i+1])
+    		{
+    			return false;
+    		}
+    	}
+
+        // are the right hand fingers plucking strings that correspond with left hand Tuples or required open notes?
+        /*
+        int currentRhIndex = 0;
+        for (int i = 0; i < fretboard.length; i++)
+        {
+        	int currentString = fretboard[i].getStringNum(); // will be -1 if the string shouldn't be played
+
+        	if (currentString != -1) // find first string that is actually used
+        	{
+        		if (currentString == rhFingers[currentRhIndex])
+        		{
+        			// 
+        			currentRhIndex++;
+        		}
+        		else
+        		{
+        			return false;
+        		}
+        	}
+        }
+        */
+        
 
         // check that each string gets only one note each
         /*
@@ -188,7 +185,6 @@ public class Voicing
     	output += "right middle plucks string " + rhFingers[2] + "\n";
     	output += "right ring plucks string " + rhFingers[3] + "\n";
 
-    	this.avgDistance();
     	// output += "avg distance of fingers from tail: " + this.avgDistance;
 
     	return output;
