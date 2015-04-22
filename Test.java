@@ -192,16 +192,22 @@ public class Test implements JMC
         // debug purposes -- produces a graph small enough to print out and observe
         List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
 
+        List<Voicing> bookend = new ArrayList<Voicing>(); // stores empty Voicing object
+        bookend.add(new Voicing());
+        grid.add(bookend); // root node
+
         for (int i = 0; i < structure.size(); i++)
         {
             List<Voicing> current = retrieveVoicingArray(structure.get(i));
 
-            List<Voicing> partial = new ArrayList<Voicing>(current.subList(0, 2));
+            List<Voicing> partial = new ArrayList<Voicing>(current.subList(0, 3));
 
             // System.out.println(i + ": " + partial.size());
 
             grid.add(partial);
         }
+
+        grid.add(bookend); // end node
 
         /*
         List<Double[][]> adjacencyMatrices = new ArrayList<Double[][]>();
@@ -224,19 +230,25 @@ public class Test implements JMC
         */
         int numberOfVoicings = 0;
 
-        for (int i = 0; i < grid.size() - 1; i++)
+        for (int i = 0; i < grid.size(); i++)
         {
             numberOfVoicings += grid.get(i).size();
+
+            System.out.println("i: " + i);
+            for (int j = 0; j < grid.get(i).size(); j++)
+            {
+                System.out.println(grid.get(i).get(j));
+            }
         }
 
         Double[][] adjacencyMatrix = new Double[numberOfVoicings + 2][numberOfVoicings + 2]; // first node is start node, last note is end node (both conencted to chord voicings with edges of weight zero)
         // We don't know which voicing we will start on
 
-        for (int i = 0; i < (numberOfVoicings + 2) - 1; i++)
+        for (int i = 0; i < numberOfVoicings; i++)
         {
-            for (int j = 0; j < (numberOfVoicings + 2) - 1; j++)
+            for (int j = 0; j < numberOfVoicings; j++)
             {
-                // adjacencyMatrix[i][j] = 999.0;
+                adjacencyMatrix[i][j] = 999.0;
             }
         }
 
@@ -249,14 +261,14 @@ public class Test implements JMC
                     Voicing first = grid.get(i).get(j);
                     Voicing second = grid.get(i+1).get(k);
 
-                    adjacencyMatrix[i + j][i + k] = first.distance(second);
+                    adjacencyMatrix[i + j][i + 1 + k] = first.distance(second);
                 }
             }
         }
 
-        for (int i = 0; i < (numberOfVoicings + 2) - 1; i++)
+        for (int i = 0; i < numberOfVoicings; i++)
         {
-            for (int j = 0; j < (numberOfVoicings + 2) - 1; j++)
+            for (int j = 0; j < numberOfVoicings; j++)
             {
                 System.out.print(adjacencyMatrix[i][j] + "\t");
             }
