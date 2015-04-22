@@ -176,7 +176,7 @@ public class Test implements JMC
     {
 
         // based on the outcome of that function call, mess with structure??
-        
+        /*
         List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
 
         for (int i = 0; i < structure.size(); i++)
@@ -187,7 +187,23 @@ public class Test implements JMC
 
             grid.add(current);
         }
+        */
 
+        // debug purposes -- produces a graph small enough to print out and observe
+        List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
+
+        for (int i = 0; i < structure.size(); i++)
+        {
+            List<Voicing> current = retrieveVoicingArray(structure.get(i));
+
+            List<Voicing> partial = new ArrayList<Voicing>(current.subList(0, 2));
+
+            // System.out.println(i + ": " + partial.size());
+
+            grid.add(partial);
+        }
+
+        /*
         List<Double[][]> adjacencyMatrices = new ArrayList<Double[][]>();
 
         for (int i = 0; i < grid.size() - 1; i++)
@@ -205,11 +221,47 @@ public class Test implements JMC
                 }
             }
         }
+        */
+        int numberOfVoicings = 0;
 
+        for (int i = 0; i < grid.size() - 1; i++)
+        {
+            numberOfVoicings += grid.get(i).size();
+        }
 
-        // create an array of lists of Voicing objects
-        // for each voicing object, find the best-scoring next voicing to go to
-        // do this for each spot in the array
+        Double[][] adjacencyMatrix = new Double[numberOfVoicings + 2][numberOfVoicings + 2]; // first node is start node, last note is end node (both conencted to chord voicings with edges of weight zero)
+        // We don't know which voicing we will start on
+
+        for (int i = 0; i < (numberOfVoicings + 2) - 1; i++)
+        {
+            for (int j = 0; j < (numberOfVoicings + 2) - 1; j++)
+            {
+                // adjacencyMatrix[i][j] = 999.0;
+            }
+        }
+
+        for (int i = 0; i < grid.size() - 1; i++)
+        {
+            for (int j = 0; j < grid.get(i).size(); j++)
+            {
+                for (int k = 0; k < grid.get(i+1).size(); k++)
+                {
+                    Voicing first = grid.get(i).get(j);
+                    Voicing second = grid.get(i+1).get(k);
+
+                    adjacencyMatrix[i + j][i + k] = first.distance(second);
+                }
+            }
+        }
+
+        for (int i = 0; i < (numberOfVoicings + 2) - 1; i++)
+        {
+            for (int j = 0; j < (numberOfVoicings + 2) - 1; j++)
+            {
+                System.out.print(adjacencyMatrix[i][j] + "\t");
+            }
+            System.out.println("");
+        }
 
         return structure;
     }
