@@ -104,48 +104,42 @@ public class Voicing
 
         // are the right hand fingers plucking strings that correspond with left hand Tuples or required open notes?
         /*
-        int currentRhIndex = 0;
         for (int i = 0; i < fretboard.length; i++)
         {
-        	int currentString = fretboard[i].getStringNum(); // will be -1 if the string shouldn't be played
+        	int currentString = fretboard[i].getStringNum();
 
-        	if (currentString != -1) // find first string that is actually used
+        	if (currentString != -1) // find string that is actually used
         	{
-        		if (currentString == rhFingers[currentRhIndex])
+        		boolean rhFound = false;
+
+        		for (int j = 0; j < rhFingers.length; j++)
         		{
-        			// 
-        			currentRhIndex++;
+        			if (rhFingers[j] == currentString) // see if there is any rh finger that uses that string
+        			{
+        				rhFound = true;
+        			}
         		}
-        		else
+
+        		if (!rhFound)
         		{
         			return false;
         		}
         	}
         }
         */
+
         
-
-        // check that each string gets only one note each
-        /*
-        int[] noteCount = new int[] {0, 0, 0, 0, 0, 0};
-
-        for (int i = 0; i < lhFingers.length; i++)
+        for (int i = 0; i < rhFingers.length; i++)
         {
-            int currentString = lhFingers[i].getStringNum(); // stringNum goes from 1 to 6, unless unset, in which case it's -1 or 0
+        	int currentString = fretboard[rhFingers[i] - 1].getStringNum();
+        	// System.out.println("current string: " + currentString + ", rhFinger " + i + ": " + rhFingers[i]);
 
-            if (currentString >= 1 && currentString <= 6)
-            {
-                noteCount[currentString-1]++;
-
-                if (noteCount[currentString-1] > 1)
-                {
-                    return false;
-                }
-            }
-        }
-        */
-
-
+        	if (rhFingers[i] != currentString)
+        	{
+        		// return false;
+        	}
+        } 
+         
 
         return true;
     }
@@ -169,6 +163,14 @@ public class Voicing
     	{
     		this.avgDistance = sum / stringsUsed;
     	}
+    }
+
+    public Double distance(Voicing other)
+    {
+    	//
+    	Double distance = Math.abs(this.avgDistance - other.avgDistance);
+
+    	return distance;
     }
 
     // output object as string, for debug purposes
