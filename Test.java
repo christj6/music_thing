@@ -188,6 +188,31 @@ public class Test implements JMC
             grid.add(current);
         }
 
+        List<int[][]> adjacencyMatrices = new ArrayList<int[][]>();
+
+        /*
+        int[][] mat1 = new int[3][4]; // testing to see that 2d arrays of different dimensions can be added to the list
+        int[][] mat2 = new int[7][18];
+        int[][] mat3 = new int[1][3];
+
+        adjacencyMatrices.add(mat1);
+        adjacencyMatrices.add(mat2);
+        adjacencyMatrices.add(mat3);
+        */
+
+
+        /*
+        for (int i = 0; i < grid.size() - 1; i++)
+        {
+            for (int j = 0; j < grid.get(i).size(); j++)
+            {
+                for (int k = 0; k < grid.get(i+1).size(); k++)
+                {
+
+                }
+            }
+        }
+        */
 
 
         // create an array of lists of Voicing objects
@@ -372,7 +397,7 @@ public class Test implements JMC
                                 if (voic.chordTester() == true)
                                 {
                                     voicings.add(voic);
-                                    System.out.println(voic);
+                                    // System.out.println(voic);
                                 }
                             }
                         }
