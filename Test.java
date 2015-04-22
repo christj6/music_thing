@@ -188,31 +188,23 @@ public class Test implements JMC
             grid.add(current);
         }
 
-        List<int[][]> adjacencyMatrices = new ArrayList<int[][]>();
+        List<Double[][]> adjacencyMatrices = new ArrayList<Double[][]>();
 
-        /*
-        int[][] mat1 = new int[3][4]; // testing to see that 2d arrays of different dimensions can be added to the list
-        int[][] mat2 = new int[7][18];
-        int[][] mat3 = new int[1][3];
-
-        adjacencyMatrices.add(mat1);
-        adjacencyMatrices.add(mat2);
-        adjacencyMatrices.add(mat3);
-        */
-
-
-        /*
         for (int i = 0; i < grid.size() - 1; i++)
         {
+            Double[][] adj = new Double[grid.get(i).size()][grid.get(i+1).size()];
+
             for (int j = 0; j < grid.get(i).size(); j++)
             {
                 for (int k = 0; k < grid.get(i+1).size(); k++)
                 {
+                    Voicing first = grid.get(i).get(j);
+                    Voicing second = grid.get(i+1).get(k);
 
+                    adj[j][k] = first.distance(second);
                 }
             }
         }
-        */
 
 
         // create an array of lists of Voicing objects
