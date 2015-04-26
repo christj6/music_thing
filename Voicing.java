@@ -23,14 +23,14 @@ public class Voicing
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
 	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
-	// private int[] stringsUsed = {0, 0, 0, 0, 0, 0}; // 
-
 	private LinkedList<Note> chord;
-	private Double avgDistance = 0.0;
 
 	private boolean barre = false; // if index finger needs to hold multiple strings with the same fret #, it's probably a barre chord
 	private boolean strummed = false; // if more than 4 right-hand fingers are needed to play the chord, it's probably strummed
-	// private int value; // will be changed frequently when computing transitions for each possible chord voicing
+
+	private Double weight;
+	private Voicing parent; // stores the parent of the voicing in a traversal
+	private Double totalScore; // used for the dynamic programming aspect of the traversal -- http://www.seas.gwu.edu/~simhaweb/cs151/lectures/module12/align.html
 
 
 	// constants
@@ -58,8 +58,97 @@ public class Voicing
 		this.lhFingers = lhFingers;	
 		this.rhFingers = rhFingers;
 
-		this.avgDistance();	
+		this.setWeight();
 	}
+
+
+    public void setParent(Voicing parent)
+    {
+    	this.parent = parent;
+    }
+
+    public Voicing getParent()
+    {
+    	return parent;
+    }
+
+    public void setWeight()
+    {
+    	// do something with weight
+    	Double avgDistance = this.avgDistance();
+
+    	Double stdDev = 0.0; // how far out the fingers are from the average location
+    	int fingers = 0;
+
+    	for (int i = 0; i < lhFingers.length; i++)
+    	{
+    		Tuple current = lhFingers[i];
+
+    		if (current.getFretNum() > 0)
+    		{
+    			Double value = current.getFretNum() - avgDistance;
+    			stdDev += Math.pow(value, 2);
+    			fingers++;
+    		}
+    	}
+
+    	if (fingers > 0)
+    	{
+    		stdDev /= fingers;
+    	}
+
+    	this.weight = stdDev;
+
+    }
+
+    public Double getWeight()
+    {
+    	return weight;
+    }
+
+    // score as in value, not to be confused with JMusic's Score data structure for storing parts/phrases/notes
+    public void setTotalScore(Double totalScore)
+    {
+    	this.totalScore = totalScore;
+    }
+
+    public Double getTotalScore()
+    {
+    	return totalScore;
+    }
+
+    // calc avg distance of fingers from tail of guitar
+    public Double avgDistance()
+    {
+    	Double sum = 0.0;
+    	int stringsUsed = 0;
+
+    	for (int i = 0; i < fretboard.length; i++)
+    	{
+    		if (fretboard[i].getFretNum() > 0)
+    		{
+    			sum += fretboard[i].getFretNum();
+    			stringsUsed++;
+    		}
+    	}
+
+    	if (stringsUsed > 0)
+    	{
+    		return sum / stringsUsed;
+    	}
+    	else
+    	{
+    		return 999.0;
+    	}
+    }
+
+    public Double distance(Voicing other)
+    {
+    	//
+    	Double distance = Math.abs(this.avgDistance() - other.avgDistance());
+
+    	return distance;
+    }
 
 	// takes in a set of Tuples representing left hand finger positions, determines if it's possible for the hand to make that shape
     public boolean chordTester()
@@ -142,35 +231,6 @@ public class Voicing
          
 
         return true;
-    }
-
-    // calc avg distance of fingers from tail of guitar
-    public void avgDistance()
-    {
-    	Double sum = 0.0;
-    	int stringsUsed = 0;
-
-    	for (int i = 0; i < fretboard.length; i++)
-    	{
-    		if (fretboard[i].getFretNum() > 0)
-    		{
-    			sum += fretboard[i].getFretNum();
-    			stringsUsed++;
-    		}
-    	}
-
-    	if (stringsUsed > 0)
-    	{
-    		this.avgDistance = sum / stringsUsed;
-    	}
-    }
-
-    public Double distance(Voicing other)
-    {
-    	//
-    	Double distance = Math.abs(this.avgDistance - other.avgDistance);
-
-    	return distance;
     }
 
     // output object as string, for debug purposes
