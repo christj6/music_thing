@@ -176,7 +176,6 @@ public class Test implements JMC
     {
 
         // based on the outcome of that function call, mess with structure??
-        /*
         List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
 
         for (int i = 0; i < structure.size(); i++)
@@ -187,93 +186,52 @@ public class Test implements JMC
 
             grid.add(current);
         }
-        */
 
-        // debug purposes -- produces a graph small enough to print out and observe
-        List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
+        //---------------------------------------------------------
 
-        List<Voicing> bookend = new ArrayList<Voicing>(); // stores empty Voicing object
-        bookend.add(new Voicing());
-        grid.add(bookend); // root node
-
-        for (int i = 0; i < structure.size(); i++)
+        for (int i = 0; i < grid.get(0).size(); i++)
         {
-            List<Voicing> current = retrieveVoicingArray(structure.get(i));
-
-            List<Voicing> partial = new ArrayList<Voicing>(current.subList(0, 3));
-
-            // System.out.println(i + ": " + partial.size());
-
-            grid.add(partial);
+            // initialize the first set of voicings with total scores equal to weights
+            grid.get(0).get(i).setTotalScore(grid.get(0).get(i).getWeight());
         }
 
-        grid.add(bookend); // end node
-
-        /*
-        List<Double[][]> adjacencyMatrices = new ArrayList<Double[][]>();
-
-        for (int i = 0; i < grid.size() - 1; i++)
+        for (int i = 1; i < grid.size(); i++)
         {
-            Double[][] adj = new Double[grid.get(i).size()][grid.get(i+1).size()];
-
             for (int j = 0; j < grid.get(i).size(); j++)
             {
-                for (int k = 0; k < grid.get(i+1).size(); k++)
-                {
-                    Voicing first = grid.get(i).get(j);
-                    Voicing second = grid.get(i+1).get(k);
+                double currentMin = 999.0;
+                int currentMinIndex = -1;
 
-                    adj[j][k] = first.distance(second);
+                for (int m = 0; m < grid.get(i-1).size(); m++)
+                {
+                    double transition = grid.get(i-1).get(m).getTotalScore() + grid.get(i).get(j).distance(grid.get(i-1).get(m));
+
+                    if (transition < currentMin)
+                    {
+                        currentMin = transition;
+                        currentMinIndex = m;
+                    }
                 }
-            }
-        }
-        */
-        int numberOfVoicings = 0;
 
-        for (int i = 0; i < grid.size(); i++)
-        {
-            numberOfVoicings += grid.get(i).size();
-
-            System.out.println("i: " + i);
-            for (int j = 0; j < grid.get(i).size(); j++)
-            {
-                System.out.println(grid.get(i).get(j));
-            }
-        }
-
-        Double[][] adjacencyMatrix = new Double[numberOfVoicings + 2][numberOfVoicings + 2]; // first node is start node, last note is end node (both conencted to chord voicings with edges of weight zero)
-        // We don't know which voicing we will start on
-
-        for (int i = 0; i < numberOfVoicings; i++)
-        {
-            for (int j = 0; j < numberOfVoicings; j++)
-            {
-                adjacencyMatrix[i][j] = 999.0;
-            }
-        }
-
-        for (int i = 0; i < grid.size() - 1; i++)
-        {
-            for (int j = 0; j < grid.get(i).size(); j++)
-            {
-                for (int k = 0; k < grid.get(i+1).size(); k++)
+                if (currentMinIndex > -1)
                 {
-                    Voicing first = grid.get(i).get(j);
-                    Voicing second = grid.get(i+1).get(k);
-
-                    adjacencyMatrix[i + j][i + 1 + k] = first.distance(second);
+                    grid.get(i).get(j).setParent(grid.get(i-1).get(currentMinIndex));
+                    grid.get(i).get(j).setTotalScore(grid.get(i-1).get(currentMinIndex).getTotalScore() + grid.get(i).get(j).getWeight());
                 }
             }
         }
 
-        for (int i = 0; i < numberOfVoicings; i++)
+        for (int i = 0; i < grid.get(grid.size() - 1).size(); i++)
         {
-            for (int j = 0; j < numberOfVoicings; j++)
-            {
-                System.out.print(adjacencyMatrix[i][j] + "\t");
-            }
-            System.out.println("");
+            System.out.println(grid.get(grid.size() - 1).get(i).getTotalScore());
         }
+
+
+
+        
+
+
+
 
         return structure;
     }
