@@ -33,6 +33,9 @@ public class Test implements JMC
     private List<Double> times = new ArrayList<Double>();
     private List<LinkedList<Note>> chordSequence = new ArrayList<LinkedList<Note>>();
 
+    private double bestScore = 0.0;
+    private int bestShift = 0;
+
     // fingers
     // left hand (fretboard)
     // private int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
@@ -61,7 +64,10 @@ public class Test implements JMC
 
         List<LinkedList<Note>> newSequence = processNotes(chordSequence, times);
 
-        Write.midi(convertStructureToScore(newSequence, times), outputFile);
+        if (newSequence != null)
+        {
+            Write.midi(convertStructureToScore(newSequence, times), outputFile);
+        }
 
         // testing chord shape tester
         // Voicing cMajorChordOpen = new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)}; // index is on string 2, fret 1; middle on string 4, fret 2; ring on string 5, fret 3; pinkie unassigned
@@ -184,7 +190,15 @@ public class Test implements JMC
 
             System.out.println(i + ": " + current.size());
 
-            grid.add(current);
+            if (current.size() < 1)
+            {
+                return null; // piece cannot be played. Continuing any further will cause the program to crash
+                // modify structure.get(i) -- ie, the chord -- so that it can actually be played on guitar
+            }
+            else
+            {
+                grid.add(current);
+            }
         }
 
         //---------------------------------------------------------
@@ -199,12 +213,12 @@ public class Test implements JMC
         {
             for (int j = 0; j < grid.get(i).size(); j++)
             {
-                double currentMin = 999.0;
+                Double currentMin = Double.MAX_VALUE;
                 int currentMinIndex = -1;
 
                 for (int m = 0; m < grid.get(i-1).size(); m++)
                 {
-                    double transition = grid.get(i-1).get(m).getTotalScore() + grid.get(i).get(j).distance(grid.get(i-1).get(m));
+                    Double transition = grid.get(i-1).get(m).getTotalScore() + grid.get(i).get(j).distance(grid.get(i-1).get(m));
 
                     if (transition < currentMin)
                     {
@@ -216,22 +230,39 @@ public class Test implements JMC
                 if (currentMinIndex > -1)
                 {
                     grid.get(i).get(j).setParent(grid.get(i-1).get(currentMinIndex));
-                    grid.get(i).get(j).setTotalScore(grid.get(i-1).get(currentMinIndex).getTotalScore() + grid.get(i).get(j).getWeight());
+                    grid.get(i).get(j).setTotalScore(currentMin + grid.get(i).get(j).getWeight());
                 }
             }
         }
 
+        Double bestScore = Double.MAX_VALUE; // initialize to maximum value
+        int bestIndex = -1;
+
         for (int i = 0; i < grid.get(grid.size() - 1).size(); i++)
         {
-            System.out.println(grid.get(grid.size() - 1).get(i).getTotalScore());
+            double candidate = grid.get(grid.size() - 1).get(i).getTotalScore();
+
+            if (candidate < bestScore)
+            {
+                bestScore = candidate;
+                bestIndex = i;
+            }
         }
 
+        if (bestIndex > -1)
+        {
+            Voicing best = grid.get(grid.size() - 1).get(bestIndex);
 
+            System.out.println(best);
 
-        
+            while (best.getParent() != null)
+            {
+                System.out.println(best.getParent());
+                best = best.getParent();
+            }
+        }
 
-
-
+        System.out.println(bestScore);
 
         return structure;
     }
@@ -275,10 +306,6 @@ public class Test implements JMC
                 // last position: process and increase the index
                 if(r == K-1)
                 {
- 
-                    //do something with the combination e.g. add to list or print
-                    // print(combination, elements);
-                    // Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
                     Tuple[] tempList = new Tuple[K];
                    
                     int tempIndex = 0;
@@ -404,7 +431,10 @@ public class Test implements JMC
                                 for (int m = 0; m < 4; m++)
                                 {
                                     rh[m] = rhFingerCombinations.get(j)[m];
+
+                                    // System.out.print(rh[m] + " ");
                                 }
+                                // System.out.println("");
 
                                 Voicing voic = new Voicing(tempFretboard, lhFingerCombinations.get(i), rh, chord);
 
@@ -480,15 +510,19 @@ public class Test implements JMC
     {
         List<Integer[]> results = new ArrayList<Integer[]>();
 
-        for (int i = 1; i <= 6; i++)
+        for (int i = -1; i <= 6; i++)
         {
-            for (int j = 1; j <= 6; j++)
+            for (int j = -1; j <= 6; j++)
             {
-                for (int k = 1; k <= 6; k++)
+                for (int k = -1; k <= 6; k++)
                 {
-                    for (int m = 1; m <= 6; m++)
+                    for (int m = -1; m <= 6; m++)
                     {
-                        if (i != j && i != k && i != m && j != k && j != m && k != m) // 360 possible combinations
+                        if (i == 0 || j == 0 || k == 0 || m == 0)
+                        {
+                            // skip
+                        }
+                        else
                         {
                             Integer[] tempCombo = new Integer[4];
 
@@ -531,12 +565,7 @@ public class Test implements JMC
         return positions;
     }
 
-
-
-
-
-
-
+    /*
     public int bestTransposition (Score score)
     {
         if (score.getHighestPitch() > highestPossibleNote || score.getLowestPitch() < lowEString)
@@ -619,6 +648,7 @@ public class Test implements JMC
 
         return openNotes;
     }
+    */
 
     // given a pitch value, determines if it's one of the open notes on the guitar
     public boolean isOpenNote(int pitchValue)
