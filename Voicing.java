@@ -25,8 +25,8 @@ public class Voicing
 
 	private LinkedList<Note> chord;
 
-	private boolean barre = false; // if index finger needs to hold multiple strings with the same fret #, it's probably a barre chord
-	private boolean strummed = false; // if more than 4 right-hand fingers are needed to play the chord, it's probably strummed
+	// private boolean barre = false; // if index finger needs to hold multiple strings with the same fret #, it's probably a barre chord
+	// private boolean strummed = false; // if more than 4 right-hand fingers are needed to play the chord, it's probably strummed
 
 	private Double weight;
 	private Voicing parent; // stores the parent of the voicing in a traversal
@@ -77,7 +77,8 @@ public class Voicing
     	// do something with weight
     	Double avgDistance = this.avgDistance();
 
-    	Double stdDev = 0.0; // how far out the fingers are from the average location
+        //-----------------------------------------------------------
+    	Double stdDev = 0.0; // how far out the fingers are from the average location, fret wise
     	int fingers = 0;
 
     	for (int i = 0; i < lhFingers.length; i++)
@@ -97,8 +98,40 @@ public class Voicing
     		stdDev /= fingers;
     	}
 
-    	this.weight = stdDev;
+        //-----------------------------------------------------------
+        Double contourLength = 0.0; // sum of distance between each finger, including string and fret
 
+        List<Integer> used = new ArrayList<Integer>();
+
+        for (int i = 0; i < lhFingers.length; i++)
+        {
+            if (lhFingers[i].getFretNum() > 0)
+            {
+                used.add(i);
+            }
+        }
+
+        for (int i = 0; i < used.size() - 1; i++)
+        {
+            int currentFret = lhFingers[i].getFretNum();
+            int currentString = lhFingers[i].getStringNum();
+
+            int nextFret = lhFingers[i+1].getFretNum();
+            int nextString = lhFingers[i+1].getStringNum();
+
+            Double fretDiff = Math.abs((double)nextFret - currentFret);
+            Double stringDiff = Math.abs((double)nextString - currentString);
+
+            Double temp = 0.0;
+            temp += Math.pow(fretDiff, 2.0);
+            temp += Math.pow(stringDiff, 2.0);
+
+            contourLength += Math.pow(temp, 0.5);
+        }
+
+        //------------------------------------------------------------
+
+    	this.weight = stdDev + contourLength + 1.0;
     }
 
     public Double getWeight()
@@ -182,14 +215,56 @@ public class Voicing
         //------------------------------------------------------------------------------------------------------
         // check the right hand fingers:
 
+        // non -1 repeats?
+        for (int i = 0; i < rhFingers.length; i++)
+        {
+            if (rhFingers[i] > 0)
+            {
+                for (int j = 0; j < rhFingers.length; j++)
+                {
+                    if (i != j)
+                    {
+                        if (rhFingers[j] == rhFingers[i])
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
         // are the right hand fingers in order? thumb on bottom (near string 6), index above thumb, etc?
-        for (int i = 0; i < rhFingers.length - 1; i++)
+        List<Integer> rh = new ArrayList<Integer>();
+
+        for (int i = 0; i < rhFingers.length; i++)
+        {
+            if (rhFingers[i] > 0)
+            {
+                rh.add(rhFingers[i]);
+            }
+        }
+
+        for (int i = 0; i < rh.size() - 1; i++)
     	{
-    		if (rhFingers[i] < rhFingers[i+1])
+    		if (rh.get(i) < rh.get(i+1))
     		{
     			return false;
     		}
     	}
+
+        int numberOfNotes = 0;
+        for (int i = 0; i < fretboard.length; i++)
+        {
+            if (fretboard[i].getFretNum() != -1)
+            {
+                numberOfNotes++;
+            }
+        }
+
+        if (numberOfNotes != rh.size())
+        {
+            return false; // discrepancy between # of notes the guitar needs plucked, and the number of right-hand fingers needed to be engaged
+        }
 
         // are the right hand fingers plucking strings that correspond with left hand Tuples or required open notes?
         /*
@@ -216,17 +291,18 @@ public class Voicing
         	}
         }
         */
-
         
         for (int i = 0; i < rhFingers.length; i++)
         {
-        	int currentString = fretboard[rhFingers[i] - 1].getStringNum();
-        	// System.out.println("current string: " + currentString + ", rhFinger " + i + ": " + rhFingers[i]);
+        	if (rhFingers[i] > 0)
+            {
+                int currentString = fretboard[rhFingers[i] - 1].getStringNum();
 
-        	if (rhFingers[i] != currentString)
-        	{
-        		// return false;
-        	}
+                if (rhFingers[i] != currentString)
+                {
+                    return false;
+                }
+            }
         } 
          
 
