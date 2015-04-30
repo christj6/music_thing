@@ -69,19 +69,6 @@ public class Test implements JMC
             Write.midi(convertStructureToScore(newSequence, times), outputFile);
         }
 
-        // testing chord shape tester
-        // Voicing cMajorChordOpen = new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)}; // index is on string 2, fret 1; middle on string 4, fret 2; ring on string 5, fret 3; pinkie unassigned
-        // Voicing cMajorChordOpen = new Voicing(new Tuple[] {new Tuple(2, 1), new Tuple(4, 2), new Tuple(5, 3), new Tuple(-1, -1)});
-        // System.out.println(cMajorChordOpen);
-        // System.out.println("testing... " + cMajorChordOpen.chordTester());
-
-        // testing Tuple shift method
-        /*
-        Tuple x = new Tuple(1, 0);
-        System.out.println(x);
-        x.shift(1);
-        System.out.println(x);
-        */
     }
 
     public List<Double> sortedUniqueStartTimes()
@@ -180,7 +167,6 @@ public class Test implements JMC
     // return the modified structure
     public List<LinkedList<Note>> processNotes (List<LinkedList<Note>> structure, List<Double> times)
     {
-
         // based on the outcome of that function call, mess with structure??
         List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
 
@@ -219,6 +205,7 @@ public class Test implements JMC
                 for (int m = 0; m < grid.get(i-1).size(); m++)
                 {
                     Double transition = grid.get(i-1).get(m).getTotalScore() + grid.get(i).get(j).distance(grid.get(i-1).get(m));
+                    // Double transition = grid.get(i-1).get(m).getTotalScore() + Math.abs(grid.get(i).get(j).avgDistance() - grid.get(i-1).get(m).avgDistance());
 
                     if (transition < currentMin)
                     {
@@ -262,14 +249,31 @@ public class Test implements JMC
             }
         }
 
-        System.out.println(bestScore);
+        // System.out.println(bestScore);
 
         return structure;
     }
 
     // given a chord/list of notes, returns all possible voicings of that chord in an arraylist
-    public List<Voicing> retrieveVoicingArray(LinkedList<Note> chord)
+    public List<Voicing> retrieveVoicingArray(LinkedList<Note> chordInput)
     {
+        // make sure pitch values in Note are sorted
+        List<Note> sorted = new ArrayList<Note>();
+        for (int i = 0; i < chordInput.size(); i++)
+        {
+            sorted.add(chordInput.get(i));
+        }
+
+        Collections.sort(sorted, new MyComparator());
+
+        LinkedList<Note> chord = new LinkedList<Note>();
+
+        for (int i = 0; i < sorted.size(); i++)
+        {
+            chord.add(sorted.get(i));
+        }
+
+        // begin collecting voicings
         List<Voicing> voicings = new ArrayList<Voicing>();
 
         List<Tuple> positions = new ArrayList<Tuple>();
@@ -339,9 +343,33 @@ public class Test implements JMC
                     //--------------------------------------------------------------------------
                     boolean rightPitchValues = true;
 
+                    /*
                     for (int i = 0; i < tempList.length; i++)
                     {
                         if (tempList[i].getPitch(tempList[i].getStringNum(), tempList[i].getFretNum()) != chord.get(i).getPitch())
+                        {
+                            rightPitchValues = false;
+                        }
+                    }
+                    */
+
+                    List<Integer> tempPitches = new ArrayList<Integer>();
+
+                    for (int i = 0; i < tempList.length; i++)
+                    {
+                        int currentPitch = tempList[i].getPitch(tempList[i].getStringNum(), tempList[i].getFretNum());
+
+                        if (currentPitch > -1)
+                        {
+                            tempPitches.add(currentPitch);
+                        }
+                    }
+
+                    Collections.sort(tempPitches);
+
+                    for (int i = 0; i < tempPitches.size(); i++)
+                    {
+                        if (tempPitches.get(i) != chord.get(i).getPitch())
                         {
                             rightPitchValues = false;
                         }
@@ -355,7 +383,7 @@ public class Test implements JMC
                     {
                         int pitchValue = tempList[i].getPitch(tempList[i].getStringNum(), tempList[i].getFretNum());
 
-                        if (!isOpenNote(pitchValue))
+                        if (tempList[i].getFretNum() > 0)
                         {
                             fingersNeeded++;
                         }
@@ -409,9 +437,10 @@ public class Test implements JMC
                         {
                             int pitchValue = tempFretboard[i].getPitch(tempFretboard[i].getStringNum(), tempFretboard[i].getFretNum());
 
-                            if (!isOpenNote(pitchValue) && pitchValue > -1)
+                            if (tempFretboard[i].getFretNum() > 0 && pitchValue > -1 && currentFingerIndex < 4)
                             {
                                 lhFingers[currentFingerIndex] = tempFretboard[i];
+
                                 currentFingerIndex++;
                             }
                         }
