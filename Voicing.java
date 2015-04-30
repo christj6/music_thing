@@ -21,16 +21,16 @@ public class Voicing
 	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private Tuple[] fretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
-	private Double[] expirations = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
+	// private Double[] expirations = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
 	private LinkedList<Note> chord;
 
 	// private boolean barre = false; // if index finger needs to hold multiple strings with the same fret #, it's probably a barre chord
 	// private boolean strummed = false; // if more than 4 right-hand fingers are needed to play the chord, it's probably strummed
 
-	private Double weight;
+	private Double weight = 0.0;
 	private Voicing parent; // stores the parent of the voicing in a traversal
-	private Double totalScore; // used for the dynamic programming aspect of the traversal -- http://www.seas.gwu.edu/~simhaweb/cs151/lectures/module12/align.html
+	private Double totalScore = 0.0; // used for the dynamic programming aspect of the traversal -- http://www.seas.gwu.edu/~simhaweb/cs151/lectures/module12/align.html
 
 
 	// constants
@@ -171,7 +171,7 @@ public class Voicing
     	}
     	else
     	{
-    		return 999.0;
+    		return Double.MAX_VALUE;
     	}
     }
 
@@ -265,32 +265,6 @@ public class Voicing
         {
             return false; // discrepancy between # of notes the guitar needs plucked, and the number of right-hand fingers needed to be engaged
         }
-
-        // are the right hand fingers plucking strings that correspond with left hand Tuples or required open notes?
-        /*
-        for (int i = 0; i < fretboard.length; i++)
-        {
-        	int currentString = fretboard[i].getStringNum();
-
-        	if (currentString != -1) // find string that is actually used
-        	{
-        		boolean rhFound = false;
-
-        		for (int j = 0; j < rhFingers.length; j++)
-        		{
-        			if (rhFingers[j] == currentString) // see if there is any rh finger that uses that string
-        			{
-        				rhFound = true;
-        			}
-        		}
-
-        		if (!rhFound)
-        		{
-        			return false;
-        		}
-        	}
-        }
-        */
         
         for (int i = 0; i < rhFingers.length; i++)
         {
@@ -305,7 +279,6 @@ public class Voicing
             }
         } 
          
-
         return true;
     }
 
@@ -327,6 +300,4 @@ public class Voicing
 
     	return output;
     }
-
-	// some sort of compare method
 }
