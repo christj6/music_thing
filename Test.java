@@ -1,4 +1,9 @@
 
+/*
+    Test.java
+    
+    This class takes in a MIDI file as an input, and determines the best way to play it on guitar, if it can be played. Otherwise it aborts.
+*/
 
 import jm.JMC;
 import jm.music.data.*;
@@ -8,75 +13,70 @@ import jm.util.*;
 
 import java.io.*;
 import java.util.*;
-
  
 public class Test implements JMC 
 {
 
     // constants
-    public static final int lowEString = 40;
-    public static final int aString = 45;
-    public static final int dString = 50;
-    public static final int gString = 55;
-    public static final int bString = 59;
-    public static final int highEString = 64;
 
-    public static final int highestPossibleNote = 84; // assumes the guitar has 20 frets
+    // open string values
+    public static final int LOW_E_STRING = 40;
+    public static final int A_STRING = 45;
+    public static final int D_STRING = 50;
+    public static final int G_STRING = 55;
+    public static final int B_STRING = 59;
+    public static final int HIGH_E_STRING = 64;
+
+    public static final int HIGHEST_POSSIBLE_NOTE = 84; // assumes the guitar has 20 frets
 
     public static final int MAX_FINGER_GAP = 2;
 
-    // score
-    private Score score = new Score();
-    // private Set<Double> uniqueStartTimes = new HashSet<Double>();
-    // private Double[] times;
-    // private LinkedList<Note>[] chordSequence;
-    private List<Double> times = new ArrayList<Double>();
-    private List<LinkedList<Note>> chordSequence = new ArrayList<LinkedList<Note>>();
+    // attributes
+    private Score score = new Score(); // Before JMusic can do anything with a MIDI file, it first must convert it into a Score object
 
-    private double bestScore = 0.0;
-    private int bestShift = 0;
+    private List<Double> times = new ArrayList<Double>(); // stores the unique note start times in a MIDI file
+    private List<LinkedList<Note>> chordSequence = new ArrayList<LinkedList<Note>>(); // stores a chord for each time value
 
-    // fingers
-    // left hand (fretboard)
-    // private int leftHandPositions[] = {-1, -1, -1, -1}; // {index, middle, ring, pinkie} // identifies which fret each finger holds onto. -1 is unassigned.
-    // private Double leftHandExpirations[] = {0.0, 0.0, 0.0, 0.0}; // time signifies when it's safe for the finger to be reassigned
-
-    // right hand (strings)
-    // private int rightHandPositions[] = {-1, -1, -1, -1}; // {p, i, m, a}
-
-    // sets up everything 
+    // takes in 2 arguments. Can potentially output a midi file
     public Test(String inputFile, String outputFile)
     {
-        // System.out.println("Importing " + inputFile);
-
-        Read.midi(score, inputFile); // check if args[0] is a valid midi file before you try reading it
-
-        // int transposeValue = bestTransposition(score);
-
-        // System.out.println("transpose: " + transposeValue);
-        // Mod.quantise(score, transposeValue);
-
-        // Write.midi(score, outputFile);
+        System.out.println("Importing " + inputFile);
+        Read.midi(score, inputFile);
         
         this.times = sortedUniqueStartTimes();
-
         this.chordSequence = chordSequenceArray();
 
+        processNotes(chordSequence, times);
+
+        /*
         List<LinkedList<Note>> newSequence = processNotes(chordSequence, times);
 
         if (newSequence != null)
         {
-            Write.midi(convertStructureToScore(newSequence, times), outputFile);
+            Write.midi(convertStructureToScore(newSequence, times), outputFile); // an instance of how to call the convert method on a structure
         }
-
+        */
     }
 
+    // takes in only 1 argument -- filename. Use this for processing a file.
+    public Test(String inputFile)
+    {
+        System.out.println("Importing " + inputFile);
+        Read.midi(score, inputFile);
+        
+        this.times = sortedUniqueStartTimes();
+        this.chordSequence = chordSequenceArray();
+
+        processNotes(chordSequence, times);
+    }
+
+    // iterates through the midi file, returns an arrayList of unique start times for every note event in the midi file
     public List<Double> sortedUniqueStartTimes()
     {
         Set<Double> uniqueStartTimes = new HashSet<Double>();
 
         // this section adapted from http://explodingart.com/jmusic/applications/Midi2text.java
-        Enumeration enum1 = score.getPartList().elements(); // changed "enum" to "enum1" to avoid the keyword error
+        Enumeration enum1 = score.getPartList().elements();
         while(enum1.hasMoreElements())
         {
             Part part = (Part) enum1.nextElement();
@@ -89,16 +89,12 @@ public class Test implements JMC
                 while(enum3.hasMoreElements())
                 {
                     Note note = (Note) enum3.nextElement();
-
                     
                     if (note.getPitch() != JMC.REST) 
                     {
                         // gather start times
                         uniqueStartTimes.add(startTime);
                     }
-                    
-
-                    // uniqueStartTimes.add(startTime); // includes rests
 
                     startTime += note.getDuration();
                 }
@@ -107,16 +103,15 @@ public class Test implements JMC
 
         List<Double> times = new ArrayList<>();
         times.addAll(uniqueStartTimes);
-        Collections.sort(times);
+        Collections.sort(times); // allows us to perform binary searches on the times arraylist later
 
         return times;
     }
 
-    
-    // idea: go through each note and make sure the duration is equal to times[i+1] - times[i]
+    // iterates through the midi file, storing each note according to its start time. Also returns an arrayList.
+    // "Chords" (sets of notes played simultaneously) are stored within this arrayList as linked lists.
     public List<LinkedList<Note>> chordSequenceArray()
     {
-
         List<LinkedList<Note>> chordSequence = new ArrayList<LinkedList<Note>>();
 
         for (int i = 0; i < times.size(); i++)
@@ -146,7 +141,7 @@ public class Test implements JMC
                         // retrieve correct index
                         // add note to the linked list stored in the correct index
 
-                        int index = Collections.binarySearch(times, startTime);
+                        int index = Collections.binarySearch(times, startTime); // finds the index associated with the current start time
 
                         chordSequence.get(index).add(note);
                     }
@@ -159,15 +154,9 @@ public class Test implements JMC
         return chordSequence;
     }
     
-
-    // process each chord to see if a human can play it
-    // if not, modify the chord in some way?
-    // process transitions sequentially, see if a human can move their hand that quickly
-    // if not, do something else?
-    // return the modified structure
-    public List<LinkedList<Note>> processNotes (List<LinkedList<Note>> structure, List<Double> times)
+    // traverses a structure, determines if it can be played on guitar, outputs the optimal path to the command line
+    public void processNotes (List<LinkedList<Note>> structure, List<Double> times)
     {
-        // based on the outcome of that function call, mess with structure??
         List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
 
         for (int i = 0; i < structure.size(); i++)
@@ -178,15 +167,15 @@ public class Test implements JMC
 
             if (current.size() < 1)
             {
-                return null; // piece cannot be played. Continuing any further will cause the program to crash
-                // modify structure.get(i) -- ie, the chord -- so that it can actually be played on guitar
+                return; // piece cannot be played. Continuing any further will cause the program to crash
+
+                // perhaps it would be possible to modify structure.get(i) -- ie, the chord -- so that it can actually be played on guitar
             }
             else
             {
                 grid.add(current);
             }
         }
-
         //---------------------------------------------------------
 
         for (int i = 0; i < grid.get(0).size(); i++)
@@ -205,7 +194,6 @@ public class Test implements JMC
                 for (int m = 0; m < grid.get(i-1).size(); m++)
                 {
                     Double transition = grid.get(i-1).get(m).getTotalScore() + grid.get(i).get(j).distance(grid.get(i-1).get(m));
-                    // Double transition = grid.get(i-1).get(m).getTotalScore() + Math.abs(grid.get(i).get(j).avgDistance() - grid.get(i-1).get(m).avgDistance());
 
                     if (transition < currentMin)
                     {
@@ -225,9 +213,13 @@ public class Test implements JMC
         Double bestScore = Double.MAX_VALUE; // initialize to maximum value
         int bestIndex = -1;
 
+        // System.out.println("Scores");
+
         for (int i = 0; i < grid.get(grid.size() - 1).size(); i++)
         {
             double candidate = grid.get(grid.size() - 1).get(i).getTotalScore();
+
+            // System.out.println((i + 1) + ": " + candidate); // outputs the scores of the n best paths
 
             if (candidate < bestScore)
             {
@@ -242,19 +234,18 @@ public class Test implements JMC
 
             System.out.println(best);
 
-            while (best.getParent() != null)
+            while (best.getParent() != null) // backtracks through the optimal path
             {
                 System.out.println(best.getParent());
                 best = best.getParent();
             }
         }
 
-        // System.out.println(bestScore);
-
-        return structure;
+        // suggestion for the future: instead of outputting the optimal path to the console, have the function return the optimal path as an arraylist of voicings
+        // that might provide more versatility for interacting with the optimal path
     }
 
-    // given a chord/list of notes, returns all possible voicings of that chord in an arraylist
+    // given a chord (linked list of Notes), returns all possible voicings of that chord in an arraylist
     public List<Voicing> retrieveVoicingArray(LinkedList<Note> chordInput)
     {
         // make sure pitch values in Note are sorted
@@ -293,24 +284,22 @@ public class Test implements JMC
         Tuple[] elements = new Tuple[positions.size()];
         elements = positions.toArray(elements);
 
-        // http://hmkcode.com/calculate-find-all-possible-combinations-of-an-array-using-java/
-        //----------------------------------------------------------------------------------------------------
-        int N = elements.length;
-        int K = chord.size();
-        int combination[] = new int[K];
+        // this section traverses all possible combinations of the provided Tuples associated with a given chord
+        int combination[] = new int[chord.size()];
         int r = 0;      
         int index = 0;
          
         while (r >= 0)
         {
-            if (index <= (N + (r - K)))
+            if (index <= elements.length + r - chord.size())
             {
                 combination[r] = index;
                      
-                // last position: process and increase the index
-                if(r == K-1)
+                if(r == chord.size() - 1)
                 {
-                    Tuple[] tempList = new Tuple[K];
+                    // this section filters the invalid voicings
+                    //--------------------------------------------------------------------------
+                    Tuple[] tempList = new Tuple[chord.size()];
                    
                     int tempIndex = 0;
 
@@ -342,16 +331,6 @@ public class Test implements JMC
 
                     //--------------------------------------------------------------------------
                     boolean rightPitchValues = true;
-
-                    /*
-                    for (int i = 0; i < tempList.length; i++)
-                    {
-                        if (tempList[i].getPitch(tempList[i].getStringNum(), tempList[i].getFretNum()) != chord.get(i).getPitch())
-                        {
-                            rightPitchValues = false;
-                        }
-                    }
-                    */
 
                     List<Integer> tempPitches = new ArrayList<Integer>();
 
@@ -417,6 +396,8 @@ public class Test implements JMC
                     //--------------------------------------------------------------------------
                     if (rightPitchValues == true && noStringPlaysMultipleNotes == true && needsNoMoreThanFourFingers == true && gapsDoNotExceedMax == true)
                     {
+                        // now we are dealing with a Voicing that passed all the tests.
+                        // We will set it to a fretboard array (6 tuples) and assign the fingers in every permutation possible
                         Tuple[] tempFretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
                         for (int i = 0; i < tempFretboard.length; i++)
                         {
@@ -457,20 +438,17 @@ public class Test implements JMC
                                 // sorting the fingers with Arrays.sort(###) destroys the finger arrangement by moving fingers around
 
                                 int[] rh = new int[4]; // convert the Int[] into a int[] array so it can be passed as a parameter
+
                                 for (int m = 0; m < 4; m++)
                                 {
                                     rh[m] = rhFingerCombinations.get(j)[m];
-
-                                    // System.out.print(rh[m] + " ");
                                 }
-                                // System.out.println("");
 
                                 Voicing voic = new Voicing(tempFretboard, lhFingerCombinations.get(i), rh, chord);
 
                                 if (voic.chordTester() == true)
                                 {
                                     voicings.add(voic);
-                                    // System.out.println(voic);
                                 }
                             }
                         }
@@ -480,7 +458,6 @@ public class Test implements JMC
                 }
                 else
                 {
-                    // select index for next position
                     index = combination[r]+1;
                     r++;                                        
                 }
@@ -499,11 +476,11 @@ public class Test implements JMC
                 }   
             }           
         }
-        //-----------------------------------------------------------------------------------------------------
 
         return voicings;
     }
 
+    // returns an arraylist of all possible permutations of left hand fingers, given the set of fretboard positions (Tuples) to hold down
     public List<Tuple[]> lhFingerCombinations(Tuple[] elements)
     {
         List<Tuple[]> results = new ArrayList<Tuple[]>();
@@ -516,14 +493,14 @@ public class Test implements JMC
                 {
                     for (int m = 0; m < 4; m++)
                     {
-                        if (i != j && i != k && i != m && j != k && j != m && k != m) // 24 possible combinations
+                        if (i != j && i != k && i != m && j != k && j != m && k != m)
                         {
                             Tuple[] tempCombo = new Tuple[4];
 
-                            tempCombo[0] = elements[i];
-                            tempCombo[1] = elements[j];
-                            tempCombo[2] = elements[k];
-                            tempCombo[3] = elements[m];
+                            tempCombo[0] = elements[i]; // left index, 1
+                            tempCombo[1] = elements[j]; // left middle, 2 
+                            tempCombo[2] = elements[k]; // left ring, 3
+                            tempCombo[3] = elements[m]; // left pinkie, 4
 
                             results.add(tempCombo);
                         }
@@ -535,6 +512,7 @@ public class Test implements JMC
         return results;
     }
 
+    // returns an arraylist of 4-int arrays (all possible right hand finger permutations, including those where fingers are unused. (-1)s are placeholders for unused slots.) 
     public List<Integer[]> rhFingerCombinations()
     {
         List<Integer[]> results = new ArrayList<Integer[]>();
@@ -549,16 +527,16 @@ public class Test implements JMC
                     {
                         if (i == 0 || j == 0 || k == 0 || m == 0)
                         {
-                            // skip
+                            // skip, there is no 0th string
                         }
                         else
                         {
                             Integer[] tempCombo = new Integer[4];
 
-                            tempCombo[0] = i;
-                            tempCombo[1] = j;
-                            tempCombo[2] = k;
-                            tempCombo[3] = m;
+                            tempCombo[0] = i; // right thumb, p
+                            tempCombo[1] = j; // right index, i
+                            tempCombo[2] = k; // right middle, m
+                            tempCombo[3] = m; // right ring, a
 
                             results.add(tempCombo);
                         }
@@ -570,14 +548,14 @@ public class Test implements JMC
         return results;
     }
 
-    // returns list of possible string/fret combos to play a given pitch
+    // takes in a midi pitch value, returns list of possible string/fret combos to play a given pitch
     public List<Tuple> retrievePositionArray (int pitch)
     {
         List<Tuple> positions = new ArrayList<Tuple>();
 
         for (int i = 1; i <= 6; i++)
         {
-            for (int j = 0; j <= (highestPossibleNote - highEString); j++)
+            for (int j = 0; j <= (HIGHEST_POSSIBLE_NOTE - HIGH_E_STRING); j++)
             {
                 Tuple position = new Tuple(i, j);
 
@@ -585,7 +563,6 @@ public class Test implements JMC
                 {
                     positions.add(position);
                 }
-
             }
         }
 
@@ -594,125 +571,8 @@ public class Test implements JMC
         return positions;
     }
 
-    /*
-    public int bestTransposition (Score score)
-    {
-        if (score.getHighestPitch() > highestPossibleNote || score.getLowestPitch() < lowEString)
-        {
-            return 0; // don't bother transposing
-        }
-
-        int maxMoveUp = highestPossibleNote - score.getHighestPitch(); // the most # of semitones the piece can go up.
-        int maxMoveDown = score.getLowestPitch() - lowEString; // the most # of semitones the piece can go down
-
-        int openNotes = countOpenNotes(score); // call on original, unmodified score
-        // System.out.println("i: " + 0 + " openNotes: " + openNotes);
-
-        int maxOpenNotes = openNotes; // not compared to anything else yet, is current max
-        int transposeValue = 0;
-
-        for (int i = 1; i <= maxMoveUp; i++)
-        {
-            Score copy = score;
-            Mod.transpose(copy, i);
-            openNotes = countOpenNotes(copy);
-
-            // System.out.println("i: " + i + " openNotes: " + openNotes);
-
-            if (openNotes > maxOpenNotes)
-            {
-                maxOpenNotes = openNotes;
-                transposeValue = i;
-            }
-
-        }
-
-        for (int i = 1; i <= maxMoveDown; i++)
-        {
-            Score copy = score;
-            Mod.transpose(copy, -i);
-            openNotes = countOpenNotes(copy);
-
-            // System.out.println("i: " + -i + " openNotes: " + openNotes);
-
-            if (openNotes > maxOpenNotes)
-            {
-                maxOpenNotes = openNotes;
-                transposeValue = -i;
-            }
-        }
-
-        return transposeValue;
-    }
-
-    // don't just check for any open notes, check for notes that are sustained for an extended period of time
-    public int countOpenNotes(Score score)
-    {
-        int openNotes = 0;
-
-        Enumeration enum1 = score.getPartList().elements();
-
-        while(enum1.hasMoreElements())
-        {
-            Part part = (Part) enum1.nextElement();
-            Enumeration enum2 = part.getPhraseList().elements();
-
-            while(enum2.hasMoreElements())
-            {
-                Phrase phrase = (Phrase) enum2.nextElement();
-                Enumeration enum3 = phrase.getNoteList().elements();
-
-                while(enum3.hasMoreElements())
-                {
-                    Note note = (Note) enum3.nextElement();
-
-                    if (isOpenNote(note.getPitch()) == true) 
-                    {
-                        // check the duration of the note, relative to the other notes (long sustaining bass note?)
-                        openNotes++;
-                    }
-                }
-            }
-        }
-
-        return openNotes;
-    }
-    */
-
-    // given a pitch value, determines if it's one of the open notes on the guitar
-    public boolean isOpenNote(int pitchValue)
-    {
-        if (pitchValue == lowEString)
-        {
-            return true;
-        }
-        else if (pitchValue == aString)
-        {
-            return true;
-        }
-        else if (pitchValue == dString)
-        {
-            return true;
-        }
-        else if (pitchValue == gString)
-        {
-            return true;
-        }
-        else if (pitchValue == bString)
-        {
-            return true;
-        }
-        else if (pitchValue == highEString)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     // takes in an array of linked lists of Notes as an input, outputs an equivalent score
+    // does not work well on unquantized midi files
     public Score convertStructureToScore(List<LinkedList<Note>> structure, List<Double> times)
     {
         int maxLinesNeeded = 6; // find length of longest linked list in structure, or just go with 6 because guitars usually have 6 strings
@@ -731,14 +591,8 @@ public class Test implements JMC
 
                     Note note = structure.get(j).remove(); // take one off the top of each linked list
 
-                    // should remove this if statement, move it to the processNotes function.
-                    // it's not the responsibility of the convert function to determine which notes should or should not be played
-                    if (note.getPitch() >= lowEString && note.getPitch() <= highestPossibleNote)
-                    {
-                        phrase.add(note); 
-                        part.add(phrase); 
-                    }
-                    // else ignore the note, the guitar can't play it anyway
+                    phrase.add(note); 
+                    part.add(phrase);
                 }
             }
 
