@@ -1,5 +1,15 @@
 
-// Tuple class for left hand finger position on guitar
+/*
+    Tuple.java
+    
+    This class stores a possible position for a left hand finger to go on the fretboard.
+    It is comprised of a string # and a fret #. 
+
+    String values range from 1 to 6. Fret values range from 0 to 20.
+
+    If the fret # is 0, the tuple doesn't require a finger to be played, since it's an open note.
+*/
+
 import jm.JMC;
 import jm.music.data.*;
 import jm.music.tools.*;
@@ -15,28 +25,28 @@ public class Tuple implements Comparable<Tuple>
 	private int fretNum;
 
 	// constants
-	public static final int maximumPolyphony = 6; // 6 strings, can be strummed simultaneously
+    public static final int LOW_E_STRING = 40; // string #6, aka lowest possible note
+    public static final int A_STRING = 45;
+    public static final int D_STRING = 50;
+    public static final int G_STRING = 55;
+    public static final int B_STRING = 59;
+    public static final int HIGH_E_STRING = 64; // pitch of string #1
 
-    public static final int lowEString = 40; // string #6, aka lowest possible note
-    public static final int aString = 45;
-    public static final int dString = 50;
-    public static final int gString = 55;
-    public static final int bString = 59;
-    public static final int highEString = 64; // pitch of string #1
-
-    public static final int highestPossibleNote = 84;
+    public static final int HIGHEST_POSSIBLE_NOTE = 84;
 
     public Tuple()
     {
     	// empty constructor
     }
 
+    // takes in string and fret #s (in that order) and creates a Tuple object
 	public Tuple(int stringNum, int fretNum) 
 	{
-		this.stringNum = stringNum; // maybe have something where if the string number is something weird, that means the position is part of a barre chord
+		this.stringNum = stringNum;
 		this.fretNum = fretNum;
 	}
 
+	// setters and getters for main attributes
 	public int getStringNum()
 	{
 		return stringNum;
@@ -57,52 +67,23 @@ public class Tuple implements Comparable<Tuple>
 		this.fretNum = fretNum;
 	}
 
-	// modify a tuple so it goes up or down some # of strings
-	public void shift (int shift)
-	{
-		int originalPitch = this.getPitch(this.stringNum, this.fretNum);
-
-		int newStringNum = this.stringNum + shift;
-
-		if (newStringNum <= 6 && newStringNum >= 0)
-		{
-			int newFretNum = -1;
-
-			for (int i = 0; i < (highestPossibleNote - highEString); i++)
-			{
-				if (this.getPitch(newStringNum, i) == originalPitch)
-				{
-					newFretNum = i;
-
-					i = highestPossibleNote - highEString; // trip loop when fret # is found
-				}
-			}
-
-			if (newFretNum > -1) // if the fret # is not found, don't modify the fretNum or stringNum
-			{
-				this.setStringNum(newStringNum);
-				this.setFretNum(newFretNum);
-			}
-		}
-	}
-
 	// takes in string and fret number, returns pitch value
 	public int getPitch (int stringNum, int fretNum)
 	{
 		switch(stringNum)
 		{
 			case 1:
-				return highEString + fretNum;
+				return HIGH_E_STRING + fretNum;
 			case 2:
-				return bString + fretNum;
+				return B_STRING + fretNum;
 			case 3:
-				return gString + fretNum;
+				return G_STRING + fretNum;
 			case 4:
-				return dString + fretNum;
+				return D_STRING + fretNum;
 			case 5:
-				return aString + fretNum;
+				return A_STRING + fretNum;
 			case 6:
-				return lowEString + fretNum;
+				return LOW_E_STRING + fretNum;
 			default:
 				return -1;
 		}
@@ -122,6 +103,8 @@ public class Tuple implements Comparable<Tuple>
         return 0;
     }
 
+    // outputs a Tuple to the command line in the form of
+    // "string x, fret y"
     public String toString()
     {
     	String output = "";
