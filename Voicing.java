@@ -1,4 +1,18 @@
 
+/*
+    Voicing.java
+
+    This class stores 1 way in which a guitarist might play a given chord.
+
+    Comprised of a fretboard (represents what each string on the guitar would play if it were currently plucked),
+    a left hand (represents where each left hand finger is on the fretboard), 
+    and a right hand (represents which string each right hand finger plucks)
+
+    Also features a weight, a pointer to a parent Voicing, and a totalScore.
+
+    Has a method (chordTester) so a Voicing can test itself and see if it's valid.
+*/
+
 import jm.JMC;
 import jm.music.data.*;
 import jm.music.tools.*;
@@ -8,42 +22,28 @@ import jm.util.*;
 import java.io.*;
 import java.util.*;
 
-// function will take LinkedList of Note objects as input, create a Voicing object if the chord is valid (can be played by a human)
 public class Voicing
 {
-	// up to 4 notes, each associated with their own left (1 = index, 2 = middle, 3, 4) and right (p = thumb, i = index, m, a) hand fingers
-	// also associated with a position on the fretboard (some notes can appear in more than one location on the fretboard)
-	// if the note is open, no left-hand fingering is required.
-	// Once a string is used for a note (fretted or open), no other note can use that string. If there exist no other strings for that note, the entire voicing is disqualified.
-	// If we are estimating the distance between two positions (based on average of left hand finger positions?), don't include the 0 fret for open strings
-	
 	// attributes
 	private Tuple[] lhFingers = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private Tuple[] fretboard = new Tuple[] {new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1), new Tuple(-1, -1)};
 	private int[] rhFingers = {-1, -1, -1, -1}; // p, i, m, a -- # refers to string plucked
-	// private Double[] expirations = {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0};
 
-	private LinkedList<Note> chord;
+	private LinkedList<Note> chord; // stored, in case we need access to the notes in the future.
 
-	// private boolean barre = false; // if index finger needs to hold multiple strings with the same fret #, it's probably a barre chord
-	// private boolean strummed = false; // if more than 4 right-hand fingers are needed to play the chord, it's probably strummed
-
-	private Double weight = 0.0;
+	private Double weight = 0.0; // how difficult/undesirable is this particular voicing to play
 	private Voicing parent; // stores the parent of the voicing in a traversal
 	private Double totalScore = 0.0; // used for the dynamic programming aspect of the traversal -- http://www.seas.gwu.edu/~simhaweb/cs151/lectures/module12/align.html
 
-
 	// constants
-	public static final int maximumPolyphony = 6; // 6 strings, can be strummed simultaneously
+    public static final int LOW_E_STRING = 40; // string #6, aka lowest possible note
+    public static final int A_STRING = 45;
+    public static final int D_STRING = 50;
+    public static final int G_STRING = 55;
+    public static final int B_STRING = 59;
+    public static final int HIGH_E_STRING = 64; // pitch of string #1
 
-    public static final int lowEString = 40; // string #6, aka lowest possible note
-    public static final int aString = 45;
-    public static final int dString = 50;
-    public static final int gString = 55;
-    public static final int bString = 59;
-    public static final int highEString = 64; // pitch of string #1
-
-    public static final int highestPossibleNote = 84;
+    public static final int HIGHEST_POSSIBLE_NOTE = 84;
 
 	public Voicing()
 	{
@@ -61,20 +61,22 @@ public class Voicing
 		this.setWeight();
 	}
 
-
+    // makes a Voicing point to its parent within Test.java's grid structure
+    // This, in tandem with the totalScore attribute, allows the dynamic programming algorithm to occur
     public void setParent(Voicing parent)
     {
     	this.parent = parent;
     }
 
+    // allows the backtracking of the optimal path to occur
     public Voicing getParent()
     {
     	return parent;
     }
 
+    // establishes the weight (relative difficulty) of playing a Voicing in and of itself. Neighboring voicings are not involved yet.
     public void setWeight()
     {
-    	// do something with weight
     	Double avgDistance = this.avgDistance();
 
         //-----------------------------------------------------------
@@ -150,7 +152,7 @@ public class Voicing
     	return totalScore;
     }
 
-    // calc avg distance of fingers from tail of guitar
+    // calculates the average distance of nonzero-fret holding fingers from tail of guitar
     public Double avgDistance()
     {
     	Double sum = 0.0;
@@ -175,9 +177,9 @@ public class Voicing
     	}
     }
 
+    // calculates the distance between two Voicings according to how much the left hand would have to move
     public Double distance(Voicing other)
     {
-    	//
     	Double distance = Math.abs(this.avgDistance() - other.avgDistance());
 
     	return distance;
@@ -215,7 +217,7 @@ public class Voicing
         //------------------------------------------------------------------------------------------------------
         // check the right hand fingers:
 
-        // non -1 repeats?
+        // non -1 repeats? There can be multiple -1s in a rhFinger array, since multiple fingers can be unassigned. But repeats of any other number implies that a single finger is plucking multiple strings simultaneously.
         for (int i = 0; i < rhFingers.length; i++)
         {
             if (rhFingers[i] > 0)
@@ -282,7 +284,7 @@ public class Voicing
         return true;
     }
 
-    // output object as string, for debug purposes
+    // output object as string to command line
     public String toString()
     {
     	String output = "";
@@ -295,8 +297,6 @@ public class Voicing
     	output += "right index plucks string " + rhFingers[1] + "\n";
     	output += "right middle plucks string " + rhFingers[2] + "\n";
     	output += "right ring plucks string " + rhFingers[3] + "\n";
-
-    	// output += "avg distance of fingers from tail: " + this.avgDistance;
 
     	return output;
     }
