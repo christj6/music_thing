@@ -152,6 +152,11 @@ public class Voicing
     	return totalScore;
     }
 
+    public Tuple[] getFretboard()
+    {
+        return fretboard;
+    }
+
     // calculates the average distance of nonzero-fret holding fingers from tail of guitar
     public Double avgDistance()
     {
