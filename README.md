@@ -3,13 +3,12 @@ music thing
 
 In cmd, using the program looks like this:
 
-
-
+```
 C:\Users\Jack\Documents\spring_2015>javac -cp C:\Users\Jack\jmusic\jmusic.jar *.java
 
 C:\Users\Jack\Documents\spring_2015>java -cp C:\Users\Jack\jmusic\jmusic.jar;. Driver phrase.mid output.mid
 Importing phrase.mid
---------------------- Reading MIDI File ---------------------
+   --------------------- Reading MIDI File ---------------------
 MIDI file type = 1
 Number of tracks = 2
 ppqn = 96
@@ -96,4 +95,4 @@ D------5-------------------8---
 A--7---------------------------
 E------------------------------
 
-C:\Users\Jack\Documents\spring_2015>
+```
