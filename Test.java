@@ -206,6 +206,8 @@ public class Test implements JMC
                 {
                     grid.get(i).get(j).setParent(grid.get(i-1).get(currentMinIndex));
                     grid.get(i).get(j).setTotalScore(currentMin + grid.get(i).get(j).getWeight());
+
+                    // grid.get(i-1).get(currentMinIndex).setChild(grid.get(i).get(j)); // might not work
                 }
             }
         }
@@ -228,16 +230,19 @@ public class Test implements JMC
             }
         }
 
+        Voicing current = new Voicing();
+
         if (bestIndex > -1)
         {
-            Voicing best = grid.get(grid.size() - 1).get(bestIndex);
+            current = grid.get(grid.size() - 1).get(bestIndex);
 
-            System.out.println(best);
-
-            while (best.getParent() != null) // backtracks through the optimal path
+            while (current.getParent() != null) // backtracks through the optimal path
             {
-                System.out.println(best.getParent());
-                best = best.getParent();
+                System.out.println(current);
+
+                current.getParent().setChild(current); // ???
+
+                current = current.getParent();
             }
         }
 
@@ -266,51 +271,34 @@ public class Test implements JMC
                     break;
             }
 
-            Voicing best = grid.get(grid.size() - 1).get(bestIndex);
+            // Voicing temp = grid.get(grid.size() - 1).get(bestIndex);
+            Voicing temp = current;
 
-            Tuple[] fretboard = best.getFretboard();
+            Tuple[] fretboard = temp.getFretboard();
 
-            // System.out.println(best);
+            System.out.print("--"); // extra dash for readability            
 
-            System.out.print("\t");
-            if (fretboard[i].getFretNum() > 9)
+            while (temp.getChild() != null) // backtracks through the optimal path
             {
-                System.out.print(fretboard[i].getFretNum());
-                System.out.print("\t");
-            }
-            else if (fretboard[i].getFretNum() < 10 && fretboard[i].getFretNum() > -1)
-            {
-                System.out.print(fretboard[i].getFretNum());
-                System.out.print("\t");
-            }
-            else if (fretboard[i].getFretNum()==-1)
-            {
-                System.out.print("\t");
-            }
-            //System.out.print("-"); // extra dash for readability            
+                fretboard = temp.getFretboard();
 
-            while (best.getParent() != null) // backtracks through the optimal path
-            {
-                fretboard = best.getFretboard();
-
-                // System.out.println(best.getParent());
                 if (fretboard[i].getFretNum() > 9)
                 {
-                    System.out.print(fretboard[i].getFretNum());
-                    System.out.print("\t");
+                    System.out.print(fretboard[i].getFretNum()); //  2 digit #s
+                    System.out.print("--");
                 }
                 else if (fretboard[i].getFretNum() < 10 && fretboard[i].getFretNum() > -1)
                 {
-                    System.out.print(fretboard[i].getFretNum());
-                    System.out.print("\t");
+                    System.out.print(fretboard[i].getFretNum()); // 1 digit #s
+                    System.out.print("---");
                 }
                 else if (fretboard[i].getFretNum()==-1)
                 {
-                    System.out.print("\t");
+                    System.out.print("----");
                 }
                 //System.out.print("-"); // extra dash for readability
 
-                best = best.getParent();
+                temp = temp.getChild();
             }
 
             System.out.println(""); // newline
