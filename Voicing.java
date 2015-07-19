@@ -33,6 +33,7 @@ public class Voicing
 
 	private Double weight = 0.0; // how difficult/undesirable is this particular voicing to play
 	private Voicing parent; // stores the parent of the voicing in a traversal
+    private Voicing child;
 	private Double totalScore = 0.0; // used for the dynamic programming aspect of the traversal -- http://www.seas.gwu.edu/~simhaweb/cs151/lectures/module12/align.html
 
 	// constants
@@ -72,6 +73,16 @@ public class Voicing
     public Voicing getParent()
     {
     	return parent;
+    }
+
+    public void setChild(Voicing child)
+    {
+        this.child = child;
+    }
+
+    public Voicing getChild()
+    {
+        return child;
     }
 
     // establishes the weight (relative difficulty) of playing a Voicing in and of itself. Neighboring voicings are not involved yet.
