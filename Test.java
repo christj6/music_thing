@@ -272,31 +272,43 @@ public class Test implements JMC
 
             // System.out.println(best);
 
-            System.out.print("-"); // extra dash for readability
-            if (fretboard[i].getFretNum()!=-1)
+            System.out.print("\t");
+            if (fretboard[i].getFretNum() > 9)
             {
                 System.out.print(fretboard[i].getFretNum());
+                System.out.print("\t");
             }
-            else
+            else if (fretboard[i].getFretNum() < 10 && fretboard[i].getFretNum() > -1)
             {
-                System.out.print("-");
+                System.out.print(fretboard[i].getFretNum());
+                System.out.print("\t");
             }
-            System.out.print("-"); // extra dash for readability            
+            else if (fretboard[i].getFretNum()==-1)
+            {
+                System.out.print("\t");
+            }
+            //System.out.print("-"); // extra dash for readability            
 
             while (best.getParent() != null) // backtracks through the optimal path
             {
                 fretboard = best.getFretboard();
 
                 // System.out.println(best.getParent());
-                if (fretboard[i].getFretNum()!=-1)
+                if (fretboard[i].getFretNum() > 9)
                 {
                     System.out.print(fretboard[i].getFretNum());
+                    System.out.print("\t");
                 }
-                else
+                else if (fretboard[i].getFretNum() < 10 && fretboard[i].getFretNum() > -1)
                 {
-                    System.out.print("-");
+                    System.out.print(fretboard[i].getFretNum());
+                    System.out.print("\t");
                 }
-                System.out.print("-"); // extra dash for readability
+                else if (fretboard[i].getFretNum()==-1)
+                {
+                    System.out.print("\t");
+                }
+                //System.out.print("-"); // extra dash for readability
 
                 best = best.getParent();
             }
