@@ -157,7 +157,7 @@ public class Test implements JMC
     // traverses a structure, determines if it can be played on guitar, outputs the optimal path to the command line
     public void processNotes (List<LinkedList<Note>> structure, List<Double> times)
     {
-        List<List<Voicing>> grid = new ArrayList<List<Voicing>>();
+        List<List<Voicing>> grid = new ArrayList<List<Voicing>>(); // stores the voicing candidates for each time value. This is the structure that gets traversed at the end.
 
         for (int i = 0; i < structure.size(); i++)
         {
@@ -240,6 +240,71 @@ public class Test implements JMC
                 best = best.getParent();
             }
         }
+
+        // output a tab?
+        for (int i = 0; i < 6; i++) // 6 strings
+        {
+            switch(i)
+            {
+                case 0:
+                    System.out.print("e");
+                    break;
+                case 1:
+                    System.out.print("b");
+                    break;
+                case 2:
+                    System.out.print("G");
+                    break;
+                case 3:
+                    System.out.print("D");
+                    break;
+                case 4:
+                    System.out.print("A");
+                    break;
+                case 5:
+                    System.out.print("E");
+                    break;
+            }
+
+            Voicing best = grid.get(grid.size() - 1).get(bestIndex);
+
+            Tuple[] fretboard = best.getFretboard();
+
+            // System.out.println(best);
+
+            System.out.print("-"); // extra dash for readability
+            if (fretboard[i].getFretNum()!=-1)
+            {
+                System.out.print(fretboard[i].getFretNum());
+            }
+            else
+            {
+                System.out.print("-");
+            }
+            System.out.print("-"); // extra dash for readability            
+
+            while (best.getParent() != null) // backtracks through the optimal path
+            {
+                fretboard = best.getFretboard();
+
+                // System.out.println(best.getParent());
+                if (fretboard[i].getFretNum()!=-1)
+                {
+                    System.out.print(fretboard[i].getFretNum());
+                }
+                else
+                {
+                    System.out.print("-");
+                }
+                System.out.print("-"); // extra dash for readability
+
+                best = best.getParent();
+            }
+
+            System.out.println(""); // newline
+        }
+
+        //-------------------------------------
 
         // suggestion for the future: instead of outputting the optimal path to the console, have the function return the optimal path as an arraylist of voicings
         // that might provide more versatility for interacting with the optimal path
@@ -601,5 +666,4 @@ public class Test implements JMC
 
         return newArrangement;
     }
-
 }
